@@ -6,12 +6,9 @@ import com.google.cloud.tools.jib.frontend.{
   BuildStepsRunner,
   CacheDirectoryCreationException
 }
-import com.google.cloud.tools.jib.http.{ Authorization, Authorizations }
-import com.google.cloud.tools.jib.image.{ ImageFormat, ImageReference }
+import com.google.cloud.tools.jib.image.ImageFormat
 import com.google.cloud.tools.jib.registry.RegistryClient
-import com.google.cloud.tools.jib.registry.credentials.RegistryCredentials
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
-import sbt.DirectCredentials
 
 import scala.collection.JavaConverters._
 
@@ -27,7 +24,8 @@ private[jib] object SbtImageBuild {
       jibTargetImageCredentialHelper: Option[String],
       jvmFlags: List[String],
       args: List[String],
-      imageFormat: JibImageFormat
+      imageFormat: JibImageFormat,
+      environment: Map[String, String]
   ): Unit = {
 
     val internalImageFormat = imageFormat match {
@@ -48,7 +46,7 @@ private[jib] object SbtImageBuild {
       .setMainClass(configuration.getMainClassFromJar)
       .setJavaArguments(args.asJava)
       .setJvmFlags(jvmFlags.asJava)
-      // .setEnvironment() // FIXME: this adds environment variables to jib
+      .setEnvironment(environment.asJava)
       .setTargetFormat(internalImageFormat.getManifestTemplateClass)
       .build()
 

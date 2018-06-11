@@ -25,6 +25,7 @@ object JibPlugin extends AutoPlugin {
     val jibOrganization                = settingKey[String]("jib docker organization (defaults to organization)")
     val jibName                        = settingKey[String]("jib image name (defaults to project name)")
     val jibVersion                     = settingKey[String]("jib version (defaults to version)")
+    val jibEnvironment                 = settingKey[Map[String, String]]("jib docker env variables")
 
     private[jib] object Private {
       val sbtSourceFilesConfiguration = {
@@ -48,6 +49,7 @@ object JibPlugin extends AutoPlugin {
     jibOrganization := organization.value,
     jibName := name.value,
     jibVersion := version.value,
+    jibEnvironment := Map.empty,
     // private values
     Private.sbtSourceFilesConfiguration := {
       val artifact   = (artifactPath in (Compile, packageBin)).value.toPath
@@ -88,7 +90,8 @@ object JibPlugin extends AutoPlugin {
       jibTargetImageCredentialHelper.value,
       jibJvmFlags.value,
       jibArgs.value,
-      jibImageFormat.value
+      jibImageFormat.value,
+      jibEnvironment.value
     ),
     jibDockerBuild := jibDockerBuild.dependsOn(packageBin in Compile).value,
     jibImageBuild := jibImageBuild.dependsOn(packageBin in Compile).value,
