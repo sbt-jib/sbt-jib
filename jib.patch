@@ -11,6 +11,23 @@ index 27f002a0..85aee875 100644
      this.description = description;
      this.buildConfiguration = buildConfiguration;
      this.sourceFilesConfiguration = sourceFilesConfiguration;
+diff --git a/jib-core/src/main/java/com/google/cloud/tools/jib/filesystem/UserCacheHome.java b/jib-core/src/main/java/com/google/cloud/tools/jib/filesystem/UserCacheHome.java
+index 3fd83824..5886bf96 100644
+--- a/jib-core/src/main/java/com/google/cloud/tools/jib/filesystem/UserCacheHome.java
++++ b/jib-core/src/main/java/com/google/cloud/tools/jib/filesystem/UserCacheHome.java
+@@ -30,12 +30,6 @@ import java.util.logging.Logger;
+  *
+  * <p>Specifically, from the specification:
+  *
+- * <ul>
+- *   <li>This directory is defined by the environment variable {@code $XDG_CACHE_HOME}.
+- *   <li>If {@code $XDG_CACHE_HOME} is either not set or empty, a default equal to {@code
+- *       $HOME/.cache} should be used.
+- * </ul>
+- *
+  * @see <a
+  *     href="https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html">https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html</a>
+  */
 diff --git a/jib-core/src/main/java/com/google/cloud/tools/jib/http/Request.java b/jib-core/src/main/java/com/google/cloud/tools/jib/http/Request.java
 index b3fae5cf..56e0c03c 100644
 --- a/jib-core/src/main/java/com/google/cloud/tools/jib/http/Request.java

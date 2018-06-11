@@ -31,7 +31,6 @@ lazy val root = (project in file(".")).settings(
   publishTo := sonatypePublishTo.value,
   unmanagedSourceDirectories in Compile += baseDirectory.value / "jib" / "jib-core" / "src" / "main" / "java",
   unmanagedResourceDirectories in Compile += baseDirectory.value / "jib" / "jib-core" / "src" / "main" / "resources",
-  doc in Compile := (target.value / "none"),
   libraryDependencies ++= Seq(
     // These are copied over from jib-core and are necessary for the jib-core sourcesets.
     "com.google.http-client"     % "google-http-client" % "1.23.0",
