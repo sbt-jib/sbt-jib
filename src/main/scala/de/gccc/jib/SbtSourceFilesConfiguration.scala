@@ -7,14 +7,14 @@ import com.google.common.collect.ImmutableList
 
 import scala.collection.JavaConverters._
 
-class SbtSourceFilesConfiguration(
+private[jib] class SbtSourceFilesConfiguration(
     baseArtifact: Path,
     dependencyClasspath: List[Path],
     externalDependencyClasspath: List[Path]
 ) extends SourceFilesConfiguration {
   private val DEPENDENCIES_PATH_ON_IMAGE = "/app/libs/"
   private val RESOURCES_PATH_ON_IMAGE = "/app/resources/"
-  private val CLASSES_PATH_ON_IMAGE = "/app/classes/"
+  private val CLASSES_PATH_ON_IMAGE = "/app/classes/*"
 
   /**
     * @return the source files for the dependencies layer. These files should be in a deterministic

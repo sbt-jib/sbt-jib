@@ -4,9 +4,9 @@ lazy val root = (project in file("."))
   .enablePlugins(JibPlugin)
   .settings(
     libraryDependencies += "commons-io" % "commons-io" % "2.6",
-    organization := "hase",
+    organization := "schmitch",
     name := "demo-project",
-    version := "0.0.1",
+    version := "0.0.2",
     scalaVersion := "2.12.6",
   )
 
