@@ -1,0 +1,3 @@
+[submodule "jib"]
+	path = jib
+	url = https://github.com/GoogleContainerTools/jib.git

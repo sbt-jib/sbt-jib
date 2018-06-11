@@ -9,8 +9,17 @@ lazy val root = (project in file("."))
   .settings(
     name := "sbt-jib",
     sbtPlugin := true,
-    libraryDependencies += "com.google.cloud" % "jib-core" % "1-ENVISIA", // jib-core LOCAL ONLY
-    libraryDependencies += "com.google.guava" % "guava" % "25.1-jre"
+    unmanagedSourceDirectories in Compile += baseDirectory.value / "jib" / "jib-core" / "src" / "main" / "java",
+    unmanagedResourceDirectories in Compile += baseDirectory.value / "jib" / "jib-core" / "src" / "main" / "resources",
+    libraryDependencies ++= Seq(
+      // These are copied over from jib-core and are necessary for the jib-core sourcesets.
+      "com.google.http-client" % "google-http-client" % "1.23.0",
+      "org.apache.commons" % "commons-compress" % "1.15",
+      "com.google.guava" % "guava" % "23.5-jre",
+      "com.fasterxml.jackson.core" % "jackson-databind" % "2.9.2",
+      "org.slf4j" % "slf4j-api" % "1.7.25",
+      "org.javassist" % "javassist" % "3.22.0-GA"
+    )
   )
 
 val demo = taskKey[Unit]("simple task")
