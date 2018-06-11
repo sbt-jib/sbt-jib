@@ -13,16 +13,18 @@ object JibPlugin extends AutoPlugin {
       case object OCI    extends JibImageFormat
     }
 
-    val jibBaseImage   = settingKey[String]("jib base image")
-    val jibJvmFlags    = settingKey[List[String]]("jib default jvm flags")
-    val jibArgs        = settingKey[List[String]]("jib default args")
-    val jibImageFormat = settingKey[JibImageFormat]("jib default image format")
-    val jibDockerBuild = taskKey[Unit]("jib build docker image")
-    val jibImageBuild  = taskKey[Unit]("jib build image (does not need docker)")
-    val jibRegistry = settingKey[String]("jib target image registry (defaults to docker hub)")
-    val jibOrganization = settingKey[String]("jib docker organization (defaults to organization)")
-    val jibName = settingKey[String]("jib image name (defaults to project name)")
-    val jibVersion = settingKey[String]("jib version (defaults to version)")
+    val jibBaseImage                   = settingKey[String]("jib base image")
+    val jibBaseImageCredentialHelper   = settingKey[Option[String]]("jib base image credential helper")
+    val jibJvmFlags                    = settingKey[List[String]]("jib default jvm flags")
+    val jibArgs                        = settingKey[List[String]]("jib default args")
+    val jibImageFormat                 = settingKey[JibImageFormat]("jib default image format")
+    val jibDockerBuild                 = taskKey[Unit]("jib build docker image")
+    val jibImageBuild                  = taskKey[Unit]("jib build image (does not need docker)")
+    val jibTargetImageCredentialHelper = settingKey[Option[String]]("jib base image credential helper")
+    val jibRegistry                    = settingKey[String]("jib target image registry (defaults to docker hub)")
+    val jibOrganization                = settingKey[String]("jib docker organization (defaults to organization)")
+    val jibName                        = settingKey[String]("jib image name (defaults to project name)")
+    val jibVersion                     = settingKey[String]("jib version (defaults to version)")
 
     private[jib] object Private {
       val sbtSourceFilesConfiguration = {
@@ -37,6 +39,8 @@ object JibPlugin extends AutoPlugin {
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
     // public values
     jibBaseImage := "registry.hub.docker.com/schmitch/graalvm:latest",
+    jibBaseImageCredentialHelper := None,
+    jibTargetImageCredentialHelper := None,
     jibJvmFlags := Nil,
     jibArgs := Nil,
     jibImageFormat := JibImageFormat.Docker,
@@ -73,6 +77,7 @@ object JibPlugin extends AutoPlugin {
     },
     jibDockerBuild := SbtDockerBuild.task(
       Private.sbtConfiguration.value,
+      jibBaseImageCredentialHelper.value,
       jibBaseImage.value,
       jibJvmFlags.value,
       jibArgs.value

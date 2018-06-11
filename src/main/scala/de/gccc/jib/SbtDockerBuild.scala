@@ -2,7 +2,11 @@ package de.gccc.jib
 
 import com.google.cloud.tools.jib.builder.BuildConfiguration
 import com.google.cloud.tools.jib.docker.DockerClient
-import com.google.cloud.tools.jib.frontend.{ BuildStepsExecutionException, BuildStepsRunner, CacheDirectoryCreationException }
+import com.google.cloud.tools.jib.frontend.{
+  BuildStepsExecutionException,
+  BuildStepsRunner,
+  CacheDirectoryCreationException
+}
 import com.google.cloud.tools.jib.image.ImageReference
 import com.google.cloud.tools.jib.registry.RegistryClient
 
@@ -14,6 +18,7 @@ private[jib] object SbtDockerBuild {
 
   def task(
       configuration: SbtConfiguration,
+      jibBaseImageCredentialHelper: Option[String],
       defaultImage: String,
       jvmFlags: List[String],
       args: List[String]
@@ -30,27 +35,27 @@ private[jib] object SbtDockerBuild {
 
     val buildConfiguration =
       BuildConfiguration
-          .builder(buildLogger)
-          .setBaseImage(baseImageReference)
-          .setTargetImage(configuration.targetImageReference)
-          //            .setBaseImageCredentialHelperName(jibExtension.getFrom().getCredHelper())
-          //            .setKnownBaseRegistryCredentials(knownBaseRegistryCredentials)
-          .setMainClass(configuration.getMainClassFromJar)
-          .setJavaArguments(args.asJava)
-          .setJvmFlags(jvmFlags.asJava)
-          .build()
+        .builder(buildLogger)
+        .setBaseImage(baseImageReference)
+        .setTargetImage(configuration.targetImageReference)
+        .setBaseImageCredentialHelperName(jibBaseImageCredentialHelper.orNull)
+        .setKnownBaseRegistryCredentials(configuration.baseImageCredentials.orNull)
+        .setMainClass(configuration.getMainClassFromJar)
+        .setJavaArguments(args.asJava)
+        .setJvmFlags(jvmFlags.asJava)
+        .build()
 
     RegistryClient.setUserAgentSuffix(USER_AGENT_SUFFIX)
 
     try {
       BuildStepsRunner
-          .forBuildToDockerDaemon(
-            buildConfiguration,
-            configuration.getSourceFilesConfiguration,
-            configuration.getCacheDirectory,
-            true  // sbt does not have a shared cache folder
-          )
-          .build(HELPFUL_SUGGESTIONS)
+        .forBuildToDockerDaemon(
+          buildConfiguration,
+          configuration.getSourceFilesConfiguration,
+          configuration.getCacheDirectory,
+          true // sbt does not have a shared cache folder
+        )
+        .build(HELPFUL_SUGGESTIONS)
     } catch {
       case e @ (_: CacheDirectoryCreationException | _: BuildStepsExecutionException) =>
         throw new Exception(e.getMessage, e.getCause)

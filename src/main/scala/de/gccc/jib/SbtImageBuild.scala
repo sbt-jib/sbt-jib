@@ -23,6 +23,8 @@ private[jib] object SbtImageBuild {
 
   def task(
       configuration: SbtConfiguration,
+      jibBaseImageCredentialHelper: Option[String],
+      jibTargetImageCredentialHelper: Option[String],
       jvmFlags: List[String],
       args: List[String],
       imageFormat: JibImageFormat
@@ -38,10 +40,10 @@ private[jib] object SbtImageBuild {
     val buildConfiguration = BuildConfiguration
       .builder(configuration.getLogger)
       .setBaseImage(configuration.baseImageReference)
-      // .setBaseImageCredentialHelperName()
+      .setBaseImageCredentialHelperName(jibBaseImageCredentialHelper.orNull)
       .setKnownBaseRegistryCredentials(configuration.baseImageCredentials.orNull)
       .setTargetImage(targetImage)
-      // .setTargetImageCredentialHelperName()
+      .setTargetImageCredentialHelperName(jibTargetImageCredentialHelper.orNull)
       .setKnownTargetRegistryCredentials(configuration.targetImageCredentials.orNull)
       .setMainClass(configuration.getMainClassFromJar)
       .setJavaArguments(args.asJava)
