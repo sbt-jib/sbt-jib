@@ -54,12 +54,12 @@ object JibPlugin extends AutoPlugin {
     jibVersion := version.value,
     jibEnvironment := Map.empty,
     mappings in Jib := Nil,
-    jibMappings := (mappings in Jib).value,
+    jibMappings := (mappings in Jib).value.toList ::: (mappings in (Compile, packageBin)).value.toList,
     // private values
     Private.sbtSourceFilesConfiguration := {
-      val internal    = (internalDependencyClasspath or (internalDependencyClasspath in Runtime)).value
-      val external    = (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value
-      val staged = Stager.stage(Jib.name)(streams.value, target.value / "jib" / "stage", jibMappings.value)
+      val internal = (internalDependencyClasspath or (internalDependencyClasspath in Runtime)).value
+      val external = (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value
+      val staged   = Stager.stage(Jib.name)(streams.value, target.value / "jib" / "stage", jibMappings.value)
 
       new SbtSourceFilesConfiguration(
         internal.map(_.data).toList,
