@@ -25,13 +25,13 @@ lazy val root = (project in file("."))
 val demo = taskKey[Unit]("simple task")
 demo := {
   val _ = (packageBin in Compile).value
-  val art = (artifactPath in (Compile, packageBin)).value.getPath
+  val art = (artifactPath in (Compile, packageBin)).value.toPath
   val external =
     (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value
   val depJars = (internalDependencyAsJars in Compile).value
   println(s"packageFile: $art")
-  println(s"internalDependencyAsJars: $depJars")
-  println(s"externalDependencyClasspath: $external")
+  println(s"internalDependencyAsJars: ${depJars.map(_.data.toPath)}")
+  println(s"externalDependencyClasspath: ${external.map(_.data.toPath)}")
 
 }
 // :point_up: [29. Mai 2018 10:20](https://gitter.im/sbt/sbt?at=5b0d0d3f352b9e1a4b3eee20)
