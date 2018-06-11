@@ -12,6 +12,9 @@ class SbtConfiguration(
     sourceFileConfiguration: SbtSourceFilesConfiguration,
     mainClass: Option[String],
     targetValue: File,
+    val organization: String,
+    val name: String,
+    val version: String
 ) extends ProjectProperties {
 
   private val PLUGIN_NAME = "jib-sbt-plugin"

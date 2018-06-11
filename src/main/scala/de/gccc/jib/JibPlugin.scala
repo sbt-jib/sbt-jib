@@ -46,9 +46,9 @@ object JibPlugin extends AutoPlugin {
 
     private[jib] object Private {
       val sbtSourceFilesConfiguration = {
-        settingKey[SbtSourceFilesConfiguration]("jib source file settings")
+        taskKey[SbtSourceFilesConfiguration]("jib source file settings")
       }
-      val sbtConfiguration = settingKey[SbtConfiguration]("jib sbt configuration")
+      val sbtConfiguration = taskKey[SbtConfiguration]("jib sbt configuration")
     }
   }
 
@@ -58,14 +58,12 @@ object JibPlugin extends AutoPlugin {
     // private values
     Private.sbtSourceFilesConfiguration := {
       val artifact = (artifactPath in (Compile, packageBin)).value.toPath
-      val external = {
-        (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value
-      }
+      val external = (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value
       val dependency = (internalDependencyAsJars in Compile).value
       new SbtSourceFilesConfiguration(
         artifact,
-        external.map(_.data.toPath).toList,
-        dependency.map(_.data.toPath).toList
+        dependency.map(_.data.toPath).toList,
+        external.map(_.data.toPath).toList
       )
     },
     Private.sbtConfiguration := {
@@ -73,7 +71,10 @@ object JibPlugin extends AutoPlugin {
         sLog.value,
         Private.sbtSourceFilesConfiguration.value,
         (mainClass in (Compile, packageBin)).value,
-        target.value / "jib"
+        target.value / "jib",
+        organization.value,
+        name.value,
+        version.value
       )
     },
     // public values
@@ -94,7 +95,8 @@ object JibPlugin extends AutoPlugin {
       val baseImageReference = ImageReference.parse(defaultImage)
 
       // TODO: FIXME
-      val targetImageReference = ImageReference.of(null, "", "")
+      val repository           = configuration.organization + "/" + configuration.name
+      val targetImageReference = ImageReference.of(null, repository, configuration.version)
 
       val buildLogger = configuration.getLogger
 
