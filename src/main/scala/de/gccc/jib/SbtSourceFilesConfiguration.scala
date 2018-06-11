@@ -1,6 +1,6 @@
 package de.gccc.jib
 
-import java.nio.file.{ Files, Path }
+import java.nio.file.{ Files, Path, Paths }
 
 import com.google.cloud.tools.jib.builder.SourceFilesConfiguration
 import com.google.common.collect.ImmutableList
@@ -11,8 +11,7 @@ import scala.collection.JavaConverters._
 private[jib] class SbtSourceFilesConfiguration(
     internalDependencyClasspath: List[File],
     externalDependencyClasspath: List[Path],
-    resourceDirectory: File,
-    additionalResources: List[File]
+    resourceDirectory: File
 ) extends SourceFilesConfiguration {
   private val DEPENDENCIES_PATH_ON_IMAGE = "/app/libs/"
   private val RESOURCES_PATH_ON_IMAGE    = "/app/resources/"
@@ -31,9 +30,7 @@ private[jib] class SbtSourceFilesConfiguration(
    *     order.
    */
   override def getResourcesFiles: ImmutableList[Path] = {
-    val resources = (resourceDirectory ** "*").get.filter(_.isFile).map(_.toPath).toList ::: additionalResources
-      .filter(_.isFile)
-      .map(_.toPath)
+    val resources = (resourceDirectory * "*").get.toList.map(_.toPath)
     ImmutableList.sortedCopyOf(resources.asJava)
   }
 
@@ -41,13 +38,11 @@ private[jib] class SbtSourceFilesConfiguration(
    * @return the source files for the classes layer. These files should be in a deterministic order.
    */
   override def getClassesFiles: ImmutableList[Path] = {
-    val classes = internalDependencyClasspath
-      .map(_ ** "*")
-      .flatMap(_.get)
+    val internal = internalDependencyClasspath
+      .flatMap(f => (f * "*").get)
       .map(_.toPath)
-      .filter(f => Files.isRegularFile(f) && f.toString.endsWith(".class"))
 
-    ImmutableList.sortedCopyOf(classes.asJava)
+    ImmutableList.sortedCopyOf(internal.asJava)
   }
 
   /**

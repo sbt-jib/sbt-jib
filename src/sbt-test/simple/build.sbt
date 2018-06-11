@@ -9,6 +9,7 @@ lazy val root = (project in file("."))
     version := "0.0.2",
     scalaVersion := "2.12.6",
     sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
+    mappings in Jib := (baseDirectory.value / "dist" / "x.txt" -> "hase/out.txt") :: Nil
   ).dependsOn(hase)
 
 

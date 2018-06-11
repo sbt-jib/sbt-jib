@@ -7,6 +7,8 @@ import sbt.Keys._
 object JibPlugin extends AutoPlugin {
 
   object autoImport {
+    val Jib: Configuration = config("jib")
+
     sealed trait JibImageFormat
     object JibImageFormat {
       case object Docker extends JibImageFormat
@@ -26,7 +28,7 @@ object JibPlugin extends AutoPlugin {
     val jibName                        = settingKey[String]("jib image name (defaults to project name)")
     val jibVersion                     = settingKey[String]("jib version (defaults to version)")
     val jibEnvironment                 = settingKey[Map[String, String]]("jib docker env variables")
-    val jibMappings                    = settingKey[List[File]]("jib additional resource mappings")
+    val jibMappings                    = taskKey[Seq[(File, String)]]("jib additional resource mappings")
 
     private[jib] object Private {
       val sbtSourceFilesConfiguration = {
@@ -51,18 +53,18 @@ object JibPlugin extends AutoPlugin {
     jibName := name.value,
     jibVersion := version.value,
     jibEnvironment := Map.empty,
-    jibMappings := Nil,
+    mappings in Jib := Nil,
+    jibMappings := (mappings in Jib).value,
     // private values
     Private.sbtSourceFilesConfiguration := {
       val internal    = (internalDependencyClasspath or (internalDependencyClasspath in Runtime)).value
       val external    = (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value
-      val resources = (resourceDirectory in Compile).value
-      val internalMappings = jibMappings.value
+      val staged = Stager.stage(Jib.name)(streams.value, target.value / "jib" / "stage", jibMappings.value)
+
       new SbtSourceFilesConfiguration(
         internal.map(_.data).toList,
         external.map(_.data.toPath).toList,
-        resources,
-        internalMappings
+        staged
       )
     },
     Private.sbtConfiguration := {
@@ -72,7 +74,7 @@ object JibPlugin extends AutoPlugin {
         sLog.value,
         Private.sbtSourceFilesConfiguration.value,
         (mainClass in (Compile, packageBin)).value,
-        target.value / "jib",
+        target.value / "jib" / "internal",
         credentials.value,
         baseImage,
         jibRegistry.value,
