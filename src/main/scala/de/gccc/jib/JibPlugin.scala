@@ -84,6 +84,8 @@ object JibPlugin extends AutoPlugin {
     ),
     jibImageBuild := SbtImageBuild.task(
       Private.sbtConfiguration.value,
+      jibBaseImageCredentialHelper.value,
+      jibTargetImageCredentialHelper.value,
       jibJvmFlags.value,
       jibArgs.value,
       jibImageFormat.value
