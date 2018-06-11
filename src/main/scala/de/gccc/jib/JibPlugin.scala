@@ -26,6 +26,7 @@ object JibPlugin extends AutoPlugin {
     val jibName                        = settingKey[String]("jib image name (defaults to project name)")
     val jibVersion                     = settingKey[String]("jib version (defaults to version)")
     val jibEnvironment                 = settingKey[Map[String, String]]("jib docker env variables")
+    val jibMappings                    = settingKey[List[File]]("jib additional resource mappings")
 
     private[jib] object Private {
       val sbtSourceFilesConfiguration = {
@@ -50,15 +51,18 @@ object JibPlugin extends AutoPlugin {
     jibName := name.value,
     jibVersion := version.value,
     jibEnvironment := Map.empty,
+    jibMappings := Nil,
     // private values
     Private.sbtSourceFilesConfiguration := {
-      val artifact   = (artifactPath in (Compile, packageBin)).value.toPath
-      val external   = (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value
-      val dependency = (internalDependencyAsJars in Compile).value
+      val internal    = (internalDependencyClasspath or (internalDependencyClasspath in Runtime)).value
+      val external    = (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value
+      val resources = (resourceDirectory in Compile).value
+      val internalMappings = jibMappings.value
       new SbtSourceFilesConfiguration(
-        artifact,
-        dependency.map(_.data.toPath).toList,
-        external.map(_.data.toPath).toList
+        internal.map(_.data).toList,
+        external.map(_.data.toPath).toList,
+        resources,
+        internalMappings
       )
     },
     Private.sbtConfiguration := {
@@ -93,8 +97,8 @@ object JibPlugin extends AutoPlugin {
       jibImageFormat.value,
       jibEnvironment.value
     ),
-    jibDockerBuild := jibDockerBuild.dependsOn(packageBin in Compile).value,
-    jibImageBuild := jibImageBuild.dependsOn(packageBin in Compile).value,
+    jibDockerBuild := jibDockerBuild.dependsOn(compile in Compile).value,
+    jibImageBuild := jibImageBuild.dependsOn(compile in Compile).value,
   )
 
 }

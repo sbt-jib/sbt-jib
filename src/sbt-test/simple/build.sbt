@@ -1,25 +1,28 @@
 lazy val hase = (project in file("module"))
 
 lazy val root = (project in file("."))
-  .enablePlugins(JibPlugin)
+  .enablePlugins(SbtTwirl, JibPlugin)
   .settings(
     libraryDependencies += "commons-io" % "commons-io" % "2.6",
     organization := "schmitch",
     name := "demo-project",
     version := "0.0.2",
     scalaVersion := "2.12.6",
-  )
+    sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
+  ).dependsOn(hase)
 
 
 val demo = taskKey[Unit]("simple task")
 demo := {
-    val _ = (packageBin in Compile).value
+    val _ = (compile in Compile).value
     val art = (artifactPath in (Compile, packageBin)).value.getPath
     val external =
         (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value
-    val depJars = (internalDependencyAsJars in Compile).value
+    val depJars = (internalDependencyClasspath in Compile).value
+    val internal = (internalDependencyClasspath or (internalDependencyClasspath in Runtime)).value
     println(s"packageFile: $art")
-    println(s"internalDependencyAsJars: $depJars")
+    println(s"internalDependencyClasspath: $internal")
+    println(s"internalDependencyClasspath: $depJars")
     println(s"externalDependencyClasspath: $external")
 
 }
