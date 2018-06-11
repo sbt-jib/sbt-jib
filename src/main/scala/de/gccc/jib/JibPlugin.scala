@@ -1,5 +1,7 @@
 package de.gccc.jib
 
+import java.nio.file.Files
+
 import com.google.cloud.tools.jib.image.ImageReference
 import sbt._
 import sbt.Keys._
@@ -54,12 +56,17 @@ object JibPlugin extends AutoPlugin {
     jibVersion := version.value,
     jibEnvironment := Map.empty,
     mappings in Jib := Nil,
-    jibMappings := (mappings in Jib).value.toList ::: (mappings in (Compile, packageBin)).value.toList,
+    jibMappings := (mappings in Jib).value,
     // private values
     Private.sbtSourceFilesConfiguration := {
-      val internal = (internalDependencyClasspath or (internalDependencyClasspath in Runtime)).value
-      val external = (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value
-      val staged   = Stager.stage(Jib.name)(streams.value, target.value / "jib" / "stage", jibMappings.value)
+      val internal           = (internalDependencyClasspath or (internalDependencyClasspath in Runtime)).value
+      val external           = (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value
+      val stageDirectory     = target.value / "jib" / "stage"
+      val stageDirectoryPath = stageDirectory.toPath
+      if (Files.notExists(stageDirectoryPath)) {
+        Files.createDirectories(stageDirectoryPath)
+      }
+      val staged = Stager.stage(Jib.name)(streams.value, stageDirectory, jibMappings.value)
 
       new SbtSourceFilesConfiguration(
         internal.map(_.data).toList,

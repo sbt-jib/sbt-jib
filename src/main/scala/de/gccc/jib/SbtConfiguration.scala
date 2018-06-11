@@ -1,7 +1,7 @@
 package de.gccc.jib
 
 import java.io.File
-import java.nio.file.Path
+import java.nio.file.{ Files, Path }
 
 import com.google.cloud.tools.jib.builder.{ BuildLogger, SourceFilesConfiguration }
 import com.google.cloud.tools.jib.frontend.{ HelpfulSuggestions, ProjectProperties }
@@ -49,7 +49,13 @@ private[jib] class SbtConfiguration(
 
   override def getSourceFilesConfiguration: SourceFilesConfiguration = sourceFileConfiguration
 
-  override def getCacheDirectory: Path = targetValue.toPath
+  override def getCacheDirectory: Path = {
+    val targetPath = targetValue.toPath
+    if (Files.notExists(targetPath)) {
+      Files.createDirectories(targetPath)
+    }
+    targetPath
+  }
 
   override def getJarPluginName: String = JAR_PLUGIN_NAME
 
