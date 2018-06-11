@@ -1,0 +1,114 @@
+diff --git a/jib-core/src/main/java/com/google/cloud/tools/jib/builder/BuildSteps.java b/jib-core/src/main/java/com/google/cloud/tools/jib/builder/BuildSteps.java
+index 27f002a0..85aee875 100644
+--- a/jib-core/src/main/java/com/google/cloud/tools/jib/builder/BuildSteps.java
++++ b/jib-core/src/main/java/com/google/cloud/tools/jib/builder/BuildSteps.java
+@@ -155,7 +155,7 @@ public class BuildSteps {
+       Caches.Initializer cachesInitializer,
+       String startupMessage,
+       String successMessage,
+-      StepsRunnerConsumer stepsRunnerConsumer) {
++      BuildSteps.StepsRunnerConsumer stepsRunnerConsumer) {
+     this.description = description;
+     this.buildConfiguration = buildConfiguration;
+     this.sourceFilesConfiguration = sourceFilesConfiguration;
+diff --git a/jib-core/src/main/java/com/google/cloud/tools/jib/http/Request.java b/jib-core/src/main/java/com/google/cloud/tools/jib/http/Request.java
+index b3fae5cf..56e0c03c 100644
+--- a/jib-core/src/main/java/com/google/cloud/tools/jib/http/Request.java
++++ b/jib-core/src/main/java/com/google/cloud/tools/jib/http/Request.java
+@@ -89,7 +89,7 @@ public class Request {
+     return new Builder();
+   }
+ 
+-  private Request(Builder builder) {
++  private Request(Request.Builder builder) {
+     this.headers = builder.headers;
+     this.body = builder.body;
+   }
+diff --git a/jib-core/src/main/java/com/google/cloud/tools/jib/image/json/OCIManifestTemplate.java b/jib-core/src/main/java/com/google/cloud/tools/jib/image/json/OCIManifestTemplate.java
+index 806b24f2..8e8fd926 100644
+--- a/jib-core/src/main/java/com/google/cloud/tools/jib/image/json/OCIManifestTemplate.java
++++ b/jib-core/src/main/java/com/google/cloud/tools/jib/image/json/OCIManifestTemplate.java
+@@ -70,10 +70,10 @@ public class OCIManifestTemplate implements BuildableManifestTemplate {
+   private final String mediaType = MANIFEST_MEDIA_TYPE;
+ 
+   /** The container configuration reference. */
+-  @Nullable private ContentDescriptorTemplate config;
++  @Nullable private BuildableManifestTemplate.ContentDescriptorTemplate config;
+ 
+   /** The list of layer references. */
+-  private final List<ContentDescriptorTemplate> layers = new ArrayList<>();
++  private final List<BuildableManifestTemplate.ContentDescriptorTemplate> layers = new ArrayList<>();
+ 
+   @Override
+   public int getSchemaVersion() {
+@@ -87,22 +87,22 @@ public class OCIManifestTemplate implements BuildableManifestTemplate {
+ 
+   @Override
+   @Nullable
+-  public ContentDescriptorTemplate getContainerConfiguration() {
++  public BuildableManifestTemplate.ContentDescriptorTemplate getContainerConfiguration() {
+     return config;
+   }
+ 
+   @Override
+-  public List<ContentDescriptorTemplate> getLayers() {
++  public List<BuildableManifestTemplate.ContentDescriptorTemplate> getLayers() {
+     return Collections.unmodifiableList(layers);
+   }
+ 
+   @Override
+   public void setContainerConfiguration(long size, DescriptorDigest digest) {
+-    config = new ContentDescriptorTemplate(CONTAINER_CONFIGURATION_MEDIA_TYPE, size, digest);
++    config = new BuildableManifestTemplate.ContentDescriptorTemplate(CONTAINER_CONFIGURATION_MEDIA_TYPE, size, digest);
+   }
+ 
+   @Override
+   public void addLayer(long size, DescriptorDigest digest) {
+-    layers.add(new ContentDescriptorTemplate(LAYER_MEDIA_TYPE, size, digest));
++    layers.add(new BuildableManifestTemplate.ContentDescriptorTemplate(LAYER_MEDIA_TYPE, size, digest));
+   }
+ }
+diff --git a/jib-core/src/main/java/com/google/cloud/tools/jib/image/json/V22ManifestTemplate.java b/jib-core/src/main/java/com/google/cloud/tools/jib/image/json/V22ManifestTemplate.java
+index fc6db4cd..cd0d5b5e 100644
+--- a/jib-core/src/main/java/com/google/cloud/tools/jib/image/json/V22ManifestTemplate.java
++++ b/jib-core/src/main/java/com/google/cloud/tools/jib/image/json/V22ManifestTemplate.java
+@@ -72,10 +72,10 @@ public class V22ManifestTemplate implements BuildableManifestTemplate {
+   private final String mediaType = MANIFEST_MEDIA_TYPE;
+ 
+   /** The container configuration reference. */
+-  @Nullable private ContentDescriptorTemplate config;
++  @Nullable private BuildableManifestTemplate.ContentDescriptorTemplate config;
+ 
+   /** The list of layer references. */
+-  private final List<ContentDescriptorTemplate> layers = new ArrayList<>();
++  private final List<BuildableManifestTemplate.ContentDescriptorTemplate> layers = new ArrayList<>();
+ 
+   @Override
+   public int getSchemaVersion() {
+@@ -89,22 +89,22 @@ public class V22ManifestTemplate implements BuildableManifestTemplate {
+ 
+   @Override
+   @Nullable
+-  public ContentDescriptorTemplate getContainerConfiguration() {
++  public BuildableManifestTemplate.ContentDescriptorTemplate getContainerConfiguration() {
+     return config;
+   }
+ 
+   @Override
+-  public List<ContentDescriptorTemplate> getLayers() {
++  public List<BuildableManifestTemplate.ContentDescriptorTemplate> getLayers() {
+     return Collections.unmodifiableList(layers);
+   }
+ 
+   @Override
+   public void setContainerConfiguration(long size, DescriptorDigest digest) {
+-    config = new ContentDescriptorTemplate(CONTAINER_CONFIGURATION_MEDIA_TYPE, size, digest);
++    config = new BuildableManifestTemplate.ContentDescriptorTemplate(CONTAINER_CONFIGURATION_MEDIA_TYPE, size, digest);
+   }
+ 
+   @Override
+   public void addLayer(long size, DescriptorDigest digest) {
+-    layers.add(new ContentDescriptorTemplate(LAYER_MEDIA_TYPE, size, digest));
++    layers.add(new BuildableManifestTemplate.ContentDescriptorTemplate(LAYER_MEDIA_TYPE, size, digest));
+   }
+ }
