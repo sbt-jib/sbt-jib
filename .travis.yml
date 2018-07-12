@@ -1,5 +1,10 @@
 language: scala
 sudo: false
-jdk: oraclejdk8
 script:
-- sbt test
+  - sbt "++${TRAVIS_SCALA_VERSION}" test
+matrix:
+  include:
+  - jdk: oraclejdk8
+    scala: 2.12.6
+  - jdk: oraclejdk10
+    scala: 2.12.6
