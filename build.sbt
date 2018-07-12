@@ -34,9 +34,9 @@ lazy val root = (project in file(".")).settings(
   libraryDependencies ++= Seq(
     // These are copied over from jib-core and are necessary for the jib-core sourcesets.
     "com.google.http-client"     % "google-http-client" % "1.23.0",
-    "org.apache.commons"         % "commons-compress"   % "1.15",
+    "org.apache.commons"         % "commons-compress"   % "1.17",
     "com.google.guava"           % "guava"              % "23.5-jre",
-    "com.fasterxml.jackson.core" % "jackson-databind"   % "2.9.2",
+    "com.fasterxml.jackson.core" % "jackson-databind"   % "2.9.6",
     "org.slf4j"                  % "slf4j-api"          % "1.7.25",
     "org.javassist"              % "javassist"          % "3.22.0-GA"
   ),
