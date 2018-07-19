@@ -33,7 +33,7 @@ private[jib] object SbtDockerBuild {
 
     val buildLogger = configuration.getLogger
 
-    val extraLayer = if (mappings.nonEmpty) new LayerConfiguration(SbtJibHelper.mappingsConverter(mappings)) else null
+    val extraLayer = if (mappings.nonEmpty) SbtJibHelper.mappingsConverter(mappings) else null
 
     val buildConfiguration =
       BuildConfiguration

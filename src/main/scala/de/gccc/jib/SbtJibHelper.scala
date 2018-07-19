@@ -1,18 +1,18 @@
 package de.gccc.jib
 
 import java.io.File
-import java.util
 
 import com.google.cloud.tools.jib.configuration.LayerConfiguration
-import com.google.cloud.tools.jib.image.LayerEntry
 import com.google.common.collect.ImmutableList
 
 import scala.collection.JavaConverters._
 
 private[jib] object SbtJibHelper {
 
-  def mappingsConverter(mappings: Seq[(File, String)]): ImmutableList[LayerEntry] = {
-    ImmutableList.sortedCopyOf[LayerEntry](mappings.map {
+  def mappingsConverter(mappings: Seq[(File, String)]): LayerConfiguration = {
+    val layerConfiguration = LayerConfiguration.builder()
+
+    mappings.map {
       case (file, fullPathOnImage) =>
         if (file.isFile) {
           val fileName = file.getName
@@ -25,11 +25,20 @@ private[jib] object SbtJibHelper {
         } else {
           (file.toPath, fullPathOnImage)
         }
-    }.groupBy(_._2).map {
-      case (pathOnImage, sourceFileWithPath) =>
-        val files = sourceFileWithPath.map(_._1).asJava
-        new LayerEntry(ImmutableList.sortedCopyOf(files), pathOnImage)
-    }.asJava)
+    }.groupBy(_._2)
+      .map {
+        case (pathOnImage, sourceFileWithPath) =>
+          val files = sourceFileWithPath.map(_._1).asJava
+          (pathOnImage, ImmutableList.sortedCopyOf(files))
+      }
+      .toList
+      .sortBy(_._1)
+      .foreach {
+        case (pathOnImage, sourceFiles) =>
+          layerConfiguration.addEntry(sourceFiles, pathOnImage)
+      }
+
+    layerConfiguration.build()
   }
 
 }

@@ -35,7 +35,7 @@ private[jib] object SbtImageBuild {
 
     val targetImage = configuration.targetImageReference
 
-    val extraLayer = if (mappings.nonEmpty) new LayerConfiguration(SbtJibHelper.mappingsConverter(mappings)) else null
+    val extraLayer = if (mappings.nonEmpty) SbtJibHelper.mappingsConverter(mappings) else null
 
     val buildConfiguration = BuildConfiguration
       .builder(configuration.getLogger)
