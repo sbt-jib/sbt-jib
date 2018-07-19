@@ -1,11 +1,8 @@
 package de.gccc.jib
 
 import com.google.cloud.tools.jib.builder.BuildConfiguration
-import com.google.cloud.tools.jib.frontend.{
-  BuildStepsExecutionException,
-  BuildStepsRunner,
-  CacheDirectoryCreationException
-}
+import com.google.cloud.tools.jib.cache.CacheDirectoryCreationException
+import com.google.cloud.tools.jib.frontend.{ BuildStepsExecutionException, BuildStepsRunner }
 import com.google.cloud.tools.jib.image.ImageFormat
 import com.google.cloud.tools.jib.registry.RegistryClient
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
@@ -56,9 +53,7 @@ private[jib] object SbtImageBuild {
       BuildStepsRunner
         .forBuildImage(
           buildConfiguration,
-          configuration.getSourceFilesConfiguration,
-          configuration.getCacheDirectory,
-          true // sbt does not have a shared cache folder
+          configuration.getSourceFilesConfiguration
         )
         .build(HELPFUL_SUGGESTIONS)
 

@@ -62,4 +62,11 @@ private[jib] class SbtSourceFilesConfiguration(
    *     filesystem. Must end with backslash.
    */
   override def getClassesPathOnImage: String = CLASSES_PATH_ON_IMAGE
+
+  /**
+   * @return the source files for snapshot dependencies. These files should be in a deterministic
+   *     order
+   */
+  override def getSnapshotDependenciesFiles: ImmutableList[Path] = ImmutableList.of()
+
 }

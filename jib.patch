@@ -1,8 +1,8 @@
 diff --git a/jib-core/src/main/java/com/google/cloud/tools/jib/builder/BuildSteps.java b/jib-core/src/main/java/com/google/cloud/tools/jib/builder/BuildSteps.java
-index 27f002a0..85aee875 100644
+index c100eca3..242a4228 100644
 --- a/jib-core/src/main/java/com/google/cloud/tools/jib/builder/BuildSteps.java
 +++ b/jib-core/src/main/java/com/google/cloud/tools/jib/builder/BuildSteps.java
-@@ -155,7 +155,7 @@ public class BuildSteps {
+@@ -192,7 +192,7 @@ public class BuildSteps {
        Caches.Initializer cachesInitializer,
        String startupMessage,
        String successMessage,
@@ -11,6 +11,32 @@ index 27f002a0..85aee875 100644
      this.description = description;
      this.buildConfiguration = buildConfiguration;
      this.sourceFilesConfiguration = sourceFilesConfiguration;
+diff --git a/jib-core/src/main/java/com/google/cloud/tools/jib/cache/LayerMetadata.java b/jib-core/src/main/java/com/google/cloud/tools/jib/cache/LayerMetadata.java
+index 5350b631..d7f1c0e3 100644
+--- a/jib-core/src/main/java/com/google/cloud/tools/jib/cache/LayerMetadata.java
++++ b/jib-core/src/main/java/com/google/cloud/tools/jib/cache/LayerMetadata.java
+@@ -73,7 +73,7 @@ class LayerMetadata {
+   /** The last time the layer was constructed. */
+   private final FileTime lastModifiedTime;
+ 
+-  LayerMetadata(ImmutableList<LayerMetadataEntry> entries, FileTime lastModifiedTime) {
++  LayerMetadata(ImmutableList<LayerMetadata.LayerMetadataEntry> entries, FileTime lastModifiedTime) {
+     this.entries = entries;
+     this.lastModifiedTime = lastModifiedTime;
+   }
+diff --git a/jib-core/src/main/java/com/google/cloud/tools/jib/configuration/Port.java b/jib-core/src/main/java/com/google/cloud/tools/jib/configuration/Port.java
+index 88f7f90c..ceeecc29 100644
+--- a/jib-core/src/main/java/com/google/cloud/tools/jib/configuration/Port.java
++++ b/jib-core/src/main/java/com/google/cloud/tools/jib/configuration/Port.java
+@@ -56,7 +56,7 @@ public class Port {
+   private final int port;
+   private final Protocol protocol;
+ 
+-  public Port(int port, Protocol protocol) {
++  public Port(int port, Port.Protocol protocol) {
+     this.port = port;
+     this.protocol = protocol;
+   }
 diff --git a/jib-core/src/main/java/com/google/cloud/tools/jib/filesystem/UserCacheHome.java b/jib-core/src/main/java/com/google/cloud/tools/jib/filesystem/UserCacheHome.java
 index 3fd83824..5886bf96 100644
 --- a/jib-core/src/main/java/com/google/cloud/tools/jib/filesystem/UserCacheHome.java

@@ -1,12 +1,9 @@
 package de.gccc.jib
 
 import com.google.cloud.tools.jib.builder.BuildConfiguration
+import com.google.cloud.tools.jib.cache.CacheDirectoryCreationException
 import com.google.cloud.tools.jib.docker.DockerClient
-import com.google.cloud.tools.jib.frontend.{
-  BuildStepsExecutionException,
-  BuildStepsRunner,
-  CacheDirectoryCreationException
-}
+import com.google.cloud.tools.jib.frontend.{ BuildStepsExecutionException, BuildStepsRunner }
 import com.google.cloud.tools.jib.image.ImageReference
 import com.google.cloud.tools.jib.registry.RegistryClient
 
@@ -51,9 +48,7 @@ private[jib] object SbtDockerBuild {
       BuildStepsRunner
         .forBuildToDockerDaemon(
           buildConfiguration,
-          configuration.getSourceFilesConfiguration,
-          configuration.getCacheDirectory,
-          true // sbt does not have a shared cache folder
+          configuration.getSourceFilesConfiguration
         )
         .build(HELPFUL_SUGGESTIONS)
     } catch {
