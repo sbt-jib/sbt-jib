@@ -2,10 +2,12 @@ package de.gccc.jib
 
 import com.google.cloud.tools.jib.builder.BuildConfiguration
 import com.google.cloud.tools.jib.cache.CacheDirectoryCreationException
+import com.google.cloud.tools.jib.configuration.LayerConfiguration
 import com.google.cloud.tools.jib.docker.DockerClient
 import com.google.cloud.tools.jib.frontend.{ BuildStepsExecutionException, BuildStepsRunner }
 import com.google.cloud.tools.jib.image.ImageReference
 import com.google.cloud.tools.jib.registry.RegistryClient
+import sbt.File
 
 import scala.collection.JavaConverters._
 
@@ -18,7 +20,8 @@ private[jib] object SbtDockerBuild {
       jibBaseImageCredentialHelper: Option[String],
       defaultImage: String,
       jvmFlags: List[String],
-      args: List[String]
+      args: List[String],
+      mappings: Seq[(File, String)]
   ): Unit = {
     val HELPFUL_SUGGESTIONS = SbtConfiguration.helpfulSuggestionProvider("Build to Docker daemon failed")
 
@@ -30,6 +33,8 @@ private[jib] object SbtDockerBuild {
 
     val buildLogger = configuration.getLogger
 
+    val extraLayer = if (mappings.nonEmpty) new LayerConfiguration(SbtJibHelper.mappingsConverter(mappings)) else null
+
     val buildConfiguration =
       BuildConfiguration
         .builder(buildLogger)
@@ -40,6 +45,7 @@ private[jib] object SbtDockerBuild {
         .setMainClass(configuration.getMainClassFromJar)
         .setJavaArguments(args.asJava)
         .setJvmFlags(jvmFlags.asJava)
+        .setExtraFilesLayerConfiguration(extraLayer)
         .build()
 
     RegistryClient.setUserAgentSuffix(USER_AGENT_SUFFIX)

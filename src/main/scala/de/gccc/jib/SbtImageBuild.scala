@@ -2,10 +2,12 @@ package de.gccc.jib
 
 import com.google.cloud.tools.jib.builder.BuildConfiguration
 import com.google.cloud.tools.jib.cache.CacheDirectoryCreationException
+import com.google.cloud.tools.jib.configuration.LayerConfiguration
 import com.google.cloud.tools.jib.frontend.{ BuildStepsExecutionException, BuildStepsRunner }
 import com.google.cloud.tools.jib.image.ImageFormat
 import com.google.cloud.tools.jib.registry.RegistryClient
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
+import sbt.File
 
 import scala.collection.JavaConverters._
 
@@ -22,7 +24,8 @@ private[jib] object SbtImageBuild {
       jvmFlags: List[String],
       args: List[String],
       imageFormat: JibImageFormat,
-      environment: Map[String, String]
+      environment: Map[String, String],
+      mappings: Seq[(File, String)]
   ): Unit = {
 
     val internalImageFormat = imageFormat match {
@@ -31,6 +34,8 @@ private[jib] object SbtImageBuild {
     }
 
     val targetImage = configuration.targetImageReference
+
+    val extraLayer = if (mappings.nonEmpty) new LayerConfiguration(SbtJibHelper.mappingsConverter(mappings)) else null
 
     val buildConfiguration = BuildConfiguration
       .builder(configuration.getLogger)
@@ -45,6 +50,7 @@ private[jib] object SbtImageBuild {
       .setJvmFlags(jvmFlags.asJava)
       .setEnvironment(environment.asJava)
       .setTargetFormat(internalImageFormat.getManifestTemplateClass)
+      .setExtraFilesLayerConfiguration(extraLayer)
       .build()
 
     RegistryClient.setUserAgentSuffix(USER_AGENT_SUFFIX)

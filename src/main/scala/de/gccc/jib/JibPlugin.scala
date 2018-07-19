@@ -9,7 +9,8 @@ import sbt.Keys._
 object JibPlugin extends AutoPlugin {
 
   object autoImport {
-    val Jib: Configuration = config("jib")
+    val Jib: Configuration      = config("jib")
+    val JibExtra: Configuration = config("jib-extra-files")
 
     sealed trait JibImageFormat
     object JibImageFormat {
@@ -31,6 +32,7 @@ object JibPlugin extends AutoPlugin {
     val jibVersion                     = settingKey[String]("jib version (defaults to version)")
     val jibEnvironment                 = settingKey[Map[String, String]]("jib docker env variables")
     val jibMappings                    = taskKey[Seq[(File, String)]]("jib additional resource mappings")
+    val jibExtraMappings               = taskKey[Seq[(File, String)]]("jib extra file mappings / i.e. java agents")
 
     private[jib] object Private {
       val sbtSourceFilesConfiguration = {
@@ -56,7 +58,9 @@ object JibPlugin extends AutoPlugin {
     jibVersion := version.value,
     jibEnvironment := Map.empty,
     mappings in Jib := Nil,
+    mappings in JibExtra := Nil,
     jibMappings := (mappings in Jib).value,
+    jibExtraMappings := (mappings in JibExtra).value,
     // private values
     Private.sbtSourceFilesConfiguration := {
       val internal           = (internalDependencyClasspath or (internalDependencyClasspath in Runtime)).value
@@ -95,7 +99,8 @@ object JibPlugin extends AutoPlugin {
       jibBaseImageCredentialHelper.value,
       jibBaseImage.value,
       jibJvmFlags.value,
-      jibArgs.value
+      jibArgs.value,
+      jibExtraMappings.value
     ),
     jibImageBuild := SbtImageBuild.task(
       Private.sbtConfiguration.value,
@@ -104,7 +109,8 @@ object JibPlugin extends AutoPlugin {
       jibJvmFlags.value,
       jibArgs.value,
       jibImageFormat.value,
-      jibEnvironment.value
+      jibEnvironment.value,
+      jibExtraMappings.value
     ),
     jibDockerBuild := jibDockerBuild.dependsOn(compile in Compile).value,
     jibImageBuild := jibImageBuild.dependsOn(compile in Compile).value,
