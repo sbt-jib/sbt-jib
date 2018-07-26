@@ -2,6 +2,7 @@ package de.gccc.jib
 
 import java.nio.file.Files
 
+import com.google.cloud.tools.jib.configuration.LayerConfiguration
 import com.google.cloud.tools.jib.image.ImageReference
 import sbt._
 import sbt.Keys._
@@ -35,10 +36,8 @@ object JibPlugin extends AutoPlugin {
     val jibExtraMappings               = taskKey[Seq[(File, String)]]("jib extra file mappings / i.e. java agents")
 
     private[jib] object Private {
-      val sbtSourceFilesConfiguration = {
-        taskKey[SbtSourceFilesConfiguration]("jib source file settings")
-      }
-      val sbtConfiguration = taskKey[SbtConfiguration]("jib sbt configuration")
+      val sbtLayerConfiguration = taskKey[List[LayerConfiguration]]("jib layer configuration")
+      val sbtConfiguration      = taskKey[SbtConfiguration]("jib sbt configuration")
     }
   }
 
@@ -62,9 +61,7 @@ object JibPlugin extends AutoPlugin {
     jibMappings := (mappings in Jib).value,
     jibExtraMappings := (mappings in JibExtra).value,
     // private values
-    Private.sbtSourceFilesConfiguration := {
-      val internal           = (internalDependencyClasspath or (internalDependencyClasspath in Runtime)).value
-      val external           = (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value
+    Private.sbtLayerConfiguration := {
       val stageDirectory     = target.value / "jib" / "stage"
       val stageDirectoryPath = stageDirectory.toPath
       if (Files.notExists(stageDirectoryPath)) {
@@ -72,9 +69,12 @@ object JibPlugin extends AutoPlugin {
       }
       val staged = Stager.stage(Jib.name)(streams.value, stageDirectory, jibMappings.value)
 
-      new SbtSourceFilesConfiguration(
-        internal.map(_.data).toList,
-        external.map(_.data.toPath).toList,
+      SbtLayerConfigurations.generate(
+        (Compile / products).value,
+        (Compile / resourceDirectories).value,
+        (Compile / internalDependencyAsJars).value,
+        (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value,
+        jibExtraMappings.value,
         staged
       )
     },
@@ -83,7 +83,7 @@ object JibPlugin extends AutoPlugin {
 
       new SbtConfiguration(
         sLog.value,
-        Private.sbtSourceFilesConfiguration.value,
+        Private.sbtLayerConfiguration.value,
         (mainClass in (Compile, packageBin)).value,
         target.value / "jib" / "internal",
         credentials.value,
@@ -99,8 +99,7 @@ object JibPlugin extends AutoPlugin {
       jibBaseImageCredentialHelper.value,
       jibBaseImage.value,
       jibJvmFlags.value,
-      jibArgs.value,
-      jibExtraMappings.value
+      jibArgs.value
     ),
     jibImageBuild := SbtImageBuild.task(
       Private.sbtConfiguration.value,
@@ -109,8 +108,7 @@ object JibPlugin extends AutoPlugin {
       jibJvmFlags.value,
       jibArgs.value,
       jibImageFormat.value,
-      jibEnvironment.value,
-      jibExtraMappings.value
+      jibEnvironment.value
     ),
     jibDockerBuild := jibDockerBuild.dependsOn(compile in Compile).value,
     jibImageBuild := jibImageBuild.dependsOn(compile in Compile).value,

@@ -1,13 +1,11 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.builder.BuildConfiguration
 import com.google.cloud.tools.jib.cache.CacheDirectoryCreationException
-import com.google.cloud.tools.jib.configuration.LayerConfiguration
+import com.google.cloud.tools.jib.configuration.BuildConfiguration
 import com.google.cloud.tools.jib.docker.DockerClient
-import com.google.cloud.tools.jib.frontend.{ BuildStepsExecutionException, BuildStepsRunner }
+import com.google.cloud.tools.jib.frontend.{ BuildStepsExecutionException, BuildStepsRunner, JavaEntrypointConstructor }
 import com.google.cloud.tools.jib.image.ImageReference
 import com.google.cloud.tools.jib.registry.RegistryClient
-import sbt.File
 
 import scala.collection.JavaConverters._
 
@@ -20,8 +18,7 @@ private[jib] object SbtDockerBuild {
       jibBaseImageCredentialHelper: Option[String],
       defaultImage: String,
       jvmFlags: List[String],
-      args: List[String],
-      mappings: Seq[(File, String)]
+      args: List[String]
   ): Unit = {
     val HELPFUL_SUGGESTIONS = SbtConfiguration.helpfulSuggestionProvider("Build to Docker daemon failed")
 
@@ -33,8 +30,6 @@ private[jib] object SbtDockerBuild {
 
     val buildLogger = configuration.getLogger
 
-    val extraLayer = if (mappings.nonEmpty) SbtJibHelper.mappingsConverter(mappings) else null
-
     val buildConfiguration =
       BuildConfiguration
         .builder(buildLogger)
@@ -42,21 +37,17 @@ private[jib] object SbtDockerBuild {
         .setTargetImage(configuration.targetImageReference)
         .setBaseImageCredentialHelperName(jibBaseImageCredentialHelper.orNull)
         .setKnownBaseRegistryCredentials(configuration.baseImageCredentials.orNull)
-        .setMainClass(configuration.getMainClassFromJar)
         .setJavaArguments(args.asJava)
-        .setJvmFlags(jvmFlags.asJava)
-        .setExtraFilesLayerConfiguration(extraLayer)
+        .setEntrypoint(
+          JavaEntrypointConstructor.makeDefaultEntrypoint(jvmFlags.asJava, configuration.getMainClassFromJar)
+        )
+        .setLayerConfigurations(configuration.getLayerConfigurations)
         .build()
 
     RegistryClient.setUserAgentSuffix(USER_AGENT_SUFFIX)
 
     try {
-      BuildStepsRunner
-        .forBuildToDockerDaemon(
-          buildConfiguration,
-          configuration.getSourceFilesConfiguration
-        )
-        .build(HELPFUL_SUGGESTIONS)
+      BuildStepsRunner.forBuildToDockerDaemon(buildConfiguration).build(HELPFUL_SUGGESTIONS)
     } catch {
       case e @ (_: CacheDirectoryCreationException | _: BuildStepsExecutionException) =>
         throw new Exception(e.getMessage, e.getCause)

@@ -1,13 +1,11 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.builder.BuildConfiguration
 import com.google.cloud.tools.jib.cache.CacheDirectoryCreationException
-import com.google.cloud.tools.jib.configuration.LayerConfiguration
-import com.google.cloud.tools.jib.frontend.{ BuildStepsExecutionException, BuildStepsRunner }
+import com.google.cloud.tools.jib.configuration.BuildConfiguration
+import com.google.cloud.tools.jib.frontend.{ BuildStepsExecutionException, BuildStepsRunner, JavaEntrypointConstructor }
 import com.google.cloud.tools.jib.image.ImageFormat
 import com.google.cloud.tools.jib.registry.RegistryClient
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
-import sbt.File
 
 import scala.collection.JavaConverters._
 
@@ -24,8 +22,7 @@ private[jib] object SbtImageBuild {
       jvmFlags: List[String],
       args: List[String],
       imageFormat: JibImageFormat,
-      environment: Map[String, String],
-      mappings: Seq[(File, String)]
+      environment: Map[String, String]
   ): Unit = {
 
     val internalImageFormat = imageFormat match {
@@ -35,8 +32,6 @@ private[jib] object SbtImageBuild {
 
     val targetImage = configuration.targetImageReference
 
-    val extraLayer = if (mappings.nonEmpty) SbtJibHelper.mappingsConverter(mappings) else null
-
     val buildConfiguration = BuildConfiguration
       .builder(configuration.getLogger)
       .setBaseImage(configuration.baseImageReference)
@@ -45,23 +40,19 @@ private[jib] object SbtImageBuild {
       .setTargetImage(targetImage)
       .setTargetImageCredentialHelperName(jibTargetImageCredentialHelper.orNull)
       .setKnownTargetRegistryCredentials(configuration.targetImageCredentials.orNull)
-      .setMainClass(configuration.getMainClassFromJar)
       .setJavaArguments(args.asJava)
-      .setJvmFlags(jvmFlags.asJava)
       .setEnvironment(environment.asJava)
       .setTargetFormat(internalImageFormat.getManifestTemplateClass)
-      .setExtraFilesLayerConfiguration(extraLayer)
+      .setEntrypoint(
+        JavaEntrypointConstructor.makeDefaultEntrypoint(jvmFlags.asJava, configuration.getMainClassFromJar)
+      )
+      .setLayerConfigurations(configuration.getLayerConfigurations)
       .build()
 
     RegistryClient.setUserAgentSuffix(USER_AGENT_SUFFIX)
 
     try {
-      BuildStepsRunner
-        .forBuildImage(
-          buildConfiguration,
-          configuration.getSourceFilesConfiguration
-        )
-        .build(HELPFUL_SUGGESTIONS)
+      BuildStepsRunner.forBuildImage(buildConfiguration).build(HELPFUL_SUGGESTIONS)
 
       configuration.getLogger.info("")
     } catch {

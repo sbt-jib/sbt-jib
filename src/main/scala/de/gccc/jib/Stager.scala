@@ -38,7 +38,8 @@ object Stager {
   /**
    * @see stageFiles
    */
-  def stage(config: String)(streams: TaskStreams, stageDirectory: File, mappings: Seq[(File, String)]): File =
+  def stage(config: String)(streams: TaskStreams, stageDirectory: File, mappings: Seq[(File, String)]): File = {
     stageFiles(config)(streams.cacheDirectory, stageDirectory, mappings)
+  }
 
 }

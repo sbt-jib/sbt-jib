@@ -3,17 +3,20 @@ package de.gccc.jib
 import java.io.File
 import java.nio.file.{ Files, Path }
 
-import com.google.cloud.tools.jib.builder.{ BuildLogger, SourceFilesConfiguration }
+import com.google.cloud.tools.jib.builder.BuildLogger
+import com.google.cloud.tools.jib.configuration.LayerConfiguration
 import com.google.cloud.tools.jib.frontend.{ HelpfulSuggestions, ProjectProperties }
 import com.google.cloud.tools.jib.http.Authorizations
-import com.google.cloud.tools.jib.image.ImageReference
+import com.google.cloud.tools.jib.image.{ ImageReference, LayerEntry }
 import com.google.cloud.tools.jib.registry.credentials.RegistryCredentials
+import com.google.common.collect.ImmutableList
 import sbt.librarymanagement.ivy.{ Credentials, DirectCredentials }
 import sbt.util.Logger
+import scala.collection.JavaConverters._
 
 private[jib] class SbtConfiguration(
     logger: Logger,
-    sourceFileConfiguration: SbtSourceFilesConfiguration,
+    layerConfigurations: List[LayerConfiguration],
     mainClass: Option[String],
     targetValue: File,
     credentials: Seq[Credentials],
@@ -47,7 +50,9 @@ private[jib] class SbtConfiguration(
 
   override def getPluginName: String = PLUGIN_NAME
 
-  override def getSourceFilesConfiguration: SourceFilesConfiguration = sourceFileConfiguration
+  override def getLayerConfigurations: ImmutableList[LayerConfiguration] = {
+    ImmutableList.copyOf[LayerConfiguration](layerConfigurations.asJavaCollection)
+  }
 
   override def getCacheDirectory: Path = {
     val targetPath = targetValue.toPath
@@ -93,6 +98,11 @@ private[jib] class SbtConfiguration(
     )
   }
 
+  override def getDependenciesLayerEntry: LayerEntry         = null
+  override def getSnapshotDependenciesLayerEntry: LayerEntry = null
+  override def getResourcesLayerEntry: LayerEntry            = null
+  override def getClassesLayerEntry: LayerEntry              = null
+  override def getExtraFilesLayerEntry: LayerEntry           = null
 }
 
 private[jib] object SbtConfiguration {
