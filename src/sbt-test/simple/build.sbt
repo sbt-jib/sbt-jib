@@ -10,7 +10,7 @@ lazy val root = (project in file("."))
     scalaVersion := "2.12.6",
     sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
     mappings in Jib := (baseDirectory.value / "dist" / "x.txt" -> "hase/out.txt") :: Nil
-  ).dependsOn(hase)
+  ).dependsOn(hase).aggregate(hase)
 
 
 val demo = taskKey[Unit]("simple task")

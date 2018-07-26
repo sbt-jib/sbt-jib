@@ -10,8 +10,8 @@ import sbt.Keys._
 object JibPlugin extends AutoPlugin {
 
   object autoImport {
-    val Jib: Configuration      = config("jib")
-    val JibExtra: Configuration = config("jib-extra-files")
+    val Jib: Configuration         = config("jib")
+    val JibExtra: Configuration    = config("jib-extra-files")
 
     sealed trait JibImageFormat
     object JibImageFormat {
@@ -70,6 +70,7 @@ object JibPlugin extends AutoPlugin {
       val staged = Stager.stage(Jib.name)(streams.value, stageDirectory, jibMappings.value)
 
       SbtLayerConfigurations.generate(
+        target.value,
         (Compile / products).value,
         (Compile / resourceDirectories).value,
         (Compile / internalDependencyAsJars).value,
