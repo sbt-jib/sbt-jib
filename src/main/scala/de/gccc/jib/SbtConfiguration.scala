@@ -86,14 +86,14 @@ private[jib] class SbtConfiguration(
     generateCredentials(
       credentials.collectFirst { case d: DirectCredentials if d.host == baseImageReference.getRegistry => d },
       "JIB_BASE_IMAGE_USERNAME",
-      "JIB_BASE_IAMGE_PASSWORD"
+      "JIB_BASE_IMAGE_PASSWORD"
     )
   }
 
   lazy val targetImageCredentials: Option[RegistryCredentials] = {
     generateCredentials(
       credentials.collectFirst { case d: DirectCredentials if d.host == targetImageReference.getRegistry => d },
-      "JIB_TARGET_IAMGE_USERNAME",
+      "JIB_TARGET_IMAGE_USERNAME",
       "JIB_TARGET_IMAGE_PASSWORD"
     )
   }
