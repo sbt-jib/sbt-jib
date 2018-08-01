@@ -9,6 +9,7 @@ import scala.language.postfixOps
 
 /** A set of helper methods to simplify the writing of mappings */
 object MappingsHelper extends Mapper {
+
   /**
    * It lightens the build file if one wants to give a string instead of file.
    *
@@ -38,9 +39,19 @@ object MappingsHelper extends Mapper {
     contentOf(file(sourceDir))
 
   def contentOf(baseDirectory: File, target: String): Seq[(File, String)] = {
-    (PathFinder(baseDirectory).allPaths --- PathFinder(baseDirectory)).pair((f: File) => {
-      IO.relativize(baseDirectory, f).map(p => target.stripSuffix("/") + "/" + p)
-    })
+    contentOf(baseDirectory, target, (_: File) => true)
+  }
+
+  def contentOf(
+      baseDirectory: File,
+      target: String,
+      filter: File => Boolean
+  ): Seq[(File, String)] = {
+    (PathFinder(baseDirectory).allPaths --- PathFinder(baseDirectory))
+      .filter(filter)
+      .pair((f: File) => {
+        IO.relativize(baseDirectory, f).map(p => target.stripSuffix("/") + "/" + p)
+      })
   }
 
   /**
@@ -81,9 +92,9 @@ object MappingsHelper extends Mapper {
    * @param includeOnNoArtifact default is false. When there's no Artifact meta data remove it
    */
   def fromClasspath(entries: Seq[Attributed[File]],
-      target: String,
-      includeArtifact: Artifact => Boolean,
-      includeOnNoArtifact: Boolean = false): Seq[(File, String)] =
+                    target: String,
+                    includeArtifact: Artifact => Boolean,
+                    includeOnNoArtifact: Boolean = false): Seq[(File, String)] =
     entries.filter(attr => attr.get(sbt.Keys.artifact.key) map includeArtifact getOrElse includeOnNoArtifact).map {
       attribute =>
         val file = attribute.data
@@ -91,4 +102,3 @@ object MappingsHelper extends Mapper {
     }
 
 }
-

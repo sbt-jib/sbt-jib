@@ -1,7 +1,7 @@
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.3.13")
 
 
-val pluginVersion = Option(System.getProperty("plugin.version")).getOrElse("0.0.12-SNAPSHOT")
+val pluginVersion = Option(System.getProperty("plugin.version")).getOrElse("0.1.2-SNAPSHOT")
 if(pluginVersion == null)
   throw new RuntimeException("""|The system property 'plugin.version' is not defined.
                                 |Specify this property using the scriptedLaunchOpts -D.""".stripMargin)

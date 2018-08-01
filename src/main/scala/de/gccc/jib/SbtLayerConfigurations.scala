@@ -37,15 +37,13 @@ object SbtLayerConfigurations {
 
     val extraLayer = if (extraMappings.nonEmpty) SbtJibHelper.mappingsConverter(extraMappings) :: Nil else Nil
 
-    val classesLayer = {
-      SbtJibHelper.mappingsConverter(
-        classes
-          // we only want class-files in our classes layer
-          // FIXME: not just extensions checking?
-          .filter(f => if (f.isFile) f.getName.endsWith(".class") else true)
-          .flatMap(MappingsHelper.contentOf(_, "/app/classes"))
-      )
-    }
+    val allClasses = classes
+    // we only want class-files in our classes layer
+    // FIXME: not just extensions checking?
+      .flatMap(MappingsHelper.contentOf(_, "/app/classes", f => if (f.isFile) f.getName.endsWith(".class") else true))
+
+    println(s"All Classes: $allClasses")
+    val classesLayer = SbtJibHelper.mappingsConverter(allClasses)
 
     // the ordering here is really important
     extraLayer ::: List(
