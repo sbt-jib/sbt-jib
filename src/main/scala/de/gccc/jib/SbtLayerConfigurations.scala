@@ -27,22 +27,21 @@ object SbtLayerConfigurations {
 
     val resourcesLayer = {
       SbtJibHelper.mappingsConverter(
-        resourceDirectories.flatMap(MappingsHelper.contentOf(_, "/app/resources"))
+        resourceDirectories.flatMap(MappingsHelper.contentOf(_, "/app/resources", _.isFile))
       )
     }
 
     val specialResourcesLayer = {
-      SbtJibHelper.mappingsConverter(MappingsHelper.contentOf(specialResourceDirectory, "/app/resources"))
+      SbtJibHelper.mappingsConverter(MappingsHelper.contentOf(specialResourceDirectory, "/app/resources", _.isFile))
     }
 
-    val extraLayer = if (extraMappings.nonEmpty) SbtJibHelper.mappingsConverter(extraMappings) :: Nil else Nil
+    val extraLayer = if (extraMappings.nonEmpty) SbtJibHelper.mappingsConverter(extraMappings.filter(_._1.isFile)) :: Nil else Nil
 
     val allClasses = classes
     // we only want class-files in our classes layer
     // FIXME: not just extensions checking?
-      .flatMap(MappingsHelper.contentOf(_, "/app/classes", f => if (f.isFile) f.getName.endsWith(".class") else true))
+      .flatMap(MappingsHelper.contentOf(_, "/app/classes", f => if (f.isFile) f.getName.endsWith(".class") else false))
 
-    println(s"All Classes: $allClasses")
     val classesLayer = SbtJibHelper.mappingsConverter(allClasses)
 
     // the ordering here is really important
