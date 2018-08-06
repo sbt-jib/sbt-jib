@@ -10,6 +10,9 @@ import sbt.Keys._
 object JibPlugin extends AutoPlugin {
 
   object autoImport {
+    val Jib: Configuration         = config("jib")
+    val JibExtra: Configuration    = config("jib-extra-files")
+
     sealed trait JibImageFormat
     object JibImageFormat {
       case object Docker extends JibImageFormat
@@ -53,8 +56,10 @@ object JibPlugin extends AutoPlugin {
     jibName := name.value,
     jibVersion := version.value,
     jibEnvironment := Map.empty,
-    jibMappings := Nil,
-    jibExtraMappings := Nil,
+    mappings in Jib := Nil,
+    mappings in JibExtra := Nil,
+    jibMappings := (mappings in Jib).value,
+    jibExtraMappings := (mappings in JibExtra).value,
     // private values
     Private.sbtLayerConfiguration := {
       val stageDirectory     = target.value / "jib" / "stage"
@@ -62,7 +67,7 @@ object JibPlugin extends AutoPlugin {
       if (Files.notExists(stageDirectoryPath)) {
         Files.createDirectories(stageDirectoryPath)
       }
-      val staged = Stager.stage("jib")(streams.value, stageDirectory, jibMappings.value)
+      val staged = Stager.stage(Jib.name)(streams.value, stageDirectory, jibMappings.value)
 
       SbtLayerConfigurations.generate(
         target.value,
