@@ -26,7 +26,6 @@ developers := List(
 
 lazy val root = (project in file(".")).settings(
   name := "sbt-jib",
-  sbtPlugin := true,
   // Add the default sonatype repository setting
   publishTo := sonatypePublishTo.value,
   unmanagedSourceDirectories in Compile += baseDirectory.value / "jib" / "jib-core" / "src" / "main" / "java",
@@ -56,4 +55,4 @@ lazy val root = (project in file(".")).settings(
     releaseStepCommand("sonatypeReleaseAll"),
     pushChanges
   )
-)
+).enablePlugins(SbtPlugin)
