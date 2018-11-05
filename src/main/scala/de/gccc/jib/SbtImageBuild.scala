@@ -1,8 +1,10 @@
 package de.gccc.jib
 
+import java.time.Instant
+
 import com.google.cloud.tools.jib.cache.CacheDirectoryCreationException
-import com.google.cloud.tools.jib.configuration.{ BuildConfiguration, CacheConfiguration }
-import com.google.cloud.tools.jib.frontend.{ BuildStepsExecutionException, BuildStepsRunner, JavaEntrypointConstructor }
+import com.google.cloud.tools.jib.configuration.{BuildConfiguration, CacheConfiguration}
+import com.google.cloud.tools.jib.frontend.{BuildStepsExecutionException, BuildStepsRunner, JavaEntrypointConstructor}
 import com.google.cloud.tools.jib.image.ImageFormat
 import com.google.cloud.tools.jib.registry.RegistryClient
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
@@ -49,6 +51,7 @@ private[jib] object SbtImageBuild {
       .setLayerConfigurations(configuration.getLayerConfigurations)
       .setBaseImageLayersCacheConfiguration(CacheConfiguration.makeTemporary())
       .setApplicationLayersCacheConfiguration(CacheConfiguration.makeTemporary())
+      .setCreationTime(Instant.now())
       .build()
 
     RegistryClient.setUserAgentSuffix(USER_AGENT_SUFFIX)

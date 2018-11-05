@@ -1,9 +1,11 @@
 package de.gccc.jib
 
+import java.time.Instant
+
 import com.google.cloud.tools.jib.cache.CacheDirectoryCreationException
-import com.google.cloud.tools.jib.configuration.{ BuildConfiguration, CacheConfiguration }
+import com.google.cloud.tools.jib.configuration.{BuildConfiguration, CacheConfiguration}
 import com.google.cloud.tools.jib.docker.DockerClient
-import com.google.cloud.tools.jib.frontend.{ BuildStepsExecutionException, BuildStepsRunner, JavaEntrypointConstructor }
+import com.google.cloud.tools.jib.frontend.{BuildStepsExecutionException, BuildStepsRunner, JavaEntrypointConstructor}
 import com.google.cloud.tools.jib.image.ImageReference
 import com.google.cloud.tools.jib.registry.RegistryClient
 
@@ -44,6 +46,7 @@ private[jib] object SbtDockerBuild {
         .setLayerConfigurations(configuration.getLayerConfigurations)
         .setBaseImageLayersCacheConfiguration(CacheConfiguration.makeTemporary())
         .setApplicationLayersCacheConfiguration(CacheConfiguration.makeTemporary())
+        .setCreationTime(Instant.now())
         .build()
 
     RegistryClient.setUserAgentSuffix(USER_AGENT_SUFFIX)
