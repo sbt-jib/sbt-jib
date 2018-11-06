@@ -1,10 +1,8 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.cache.CacheDirectoryCreationException
-import com.google.cloud.tools.jib.configuration.{ BuildConfiguration, CacheConfiguration }
-import com.google.cloud.tools.jib.frontend.{ BuildStepsExecutionException, BuildStepsRunner, JavaEntrypointConstructor }
+import com.google.cloud.tools.jib.api.{ Containerizer, Jib }
+import com.google.cloud.tools.jib.configuration.CacheDirectoryCreationException
 import com.google.cloud.tools.jib.image.ImageFormat
-import com.google.cloud.tools.jib.registry.RegistryClient
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 
 import scala.collection.JavaConverters._
@@ -12,8 +10,6 @@ import scala.collection.JavaConverters._
 private[jib] object SbtImageBuild {
 
   private val USER_AGENT_SUFFIX = "jib-sbt-plugin"
-
-  private val HELPFUL_SUGGESTIONS = SbtConfiguration.helpfulSuggestionProvider("Build image failed")
 
   def task(
       configuration: SbtConfiguration,
@@ -30,35 +26,29 @@ private[jib] object SbtImageBuild {
       case JibImageFormat.OCI    => ImageFormat.OCI
     }
 
-    val targetImage = configuration.targetImageReference
-
-    val buildConfiguration = BuildConfiguration
-      .builder(configuration.getLogger)
-      .setBaseImage(configuration.baseImageReference)
-      .setBaseImageCredentialHelperName(jibBaseImageCredentialHelper.orNull)
-      .setKnownBaseRegistryCredentials(configuration.baseImageCredentials.orNull)
-      .setTargetImage(targetImage)
-      .setTargetImageCredentialHelperName(jibTargetImageCredentialHelper.orNull)
-      .setKnownTargetRegistryCredentials(configuration.targetImageCredentials.orNull)
-      .setJavaArguments(args.asJava)
-      .setEnvironment(environment.asJava)
-      .setTargetFormat(internalImageFormat.getManifestTemplateClass)
-      .setEntrypoint(
-        JavaEntrypointConstructor.makeDefaultEntrypoint(jvmFlags.asJava, configuration.getMainClassFromJar)
-      )
-      .setLayerConfigurations(configuration.getLayerConfigurations)
-      .setBaseImageLayersCacheConfiguration(CacheConfiguration.makeTemporary())
-      .setApplicationLayersCacheConfiguration(CacheConfiguration.makeTemporary())
-      .build()
-
-    RegistryClient.setUserAgentSuffix(USER_AGENT_SUFFIX)
-
     try {
-      BuildStepsRunner.forBuildImage(buildConfiguration).build(HELPFUL_SUGGESTIONS)
 
-      configuration.getLogger.info("")
+      val jib = Jib.from(configuration.baseImageFactory(jibBaseImageCredentialHelper))
+
+      configuration.getLayerConfigurations.forEach { configuration =>
+        jib.addLayer(configuration)
+      }
+
+      jib
+        .setEnvironment(environment.asJava)
+        .setProgramArguments(args.asJava)
+        .setFormat(internalImageFormat)
+        .setEntrypoint(configuration.entrypoint(jvmFlags))
+        .containerize(
+          Containerizer
+            .to(configuration.targetImageFactory(jibTargetImageCredentialHelper))
+            .setToolName(USER_AGENT_SUFFIX)
+            // .setBaseImageLayersCache()
+            // .setApplicationLayersCache()
+        )
+
     } catch {
-      case e @ (_: CacheDirectoryCreationException | _: BuildStepsExecutionException) =>
+      case e @ (_: CacheDirectoryCreationException) =>
         throw new Exception(e.getMessage, e.getCause)
     }
   }

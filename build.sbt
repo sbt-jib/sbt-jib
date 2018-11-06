@@ -28,16 +28,17 @@ lazy val root = (project in file(".")).settings(
   name := "sbt-jib",
   // Add the default sonatype repository setting
   publishTo := sonatypePublishTo.value,
-  unmanagedSourceDirectories in Compile += baseDirectory.value / "jib" / "jib-core" / "src" / "main" / "java",
-  unmanagedResourceDirectories in Compile += baseDirectory.value / "jib" / "jib-core" / "src" / "main" / "resources",
+  // unmanagedSourceDirectories in Compile += baseDirectory.value / "jib" / "jib-core" / "src" / "main" / "java",
+  // unmanagedResourceDirectories in Compile += baseDirectory.value / "jib" / "jib-core" / "src" / "main" / "resources",
   libraryDependencies ++= Seq(
+    "com.google.cloud.tools" % "jib-core" % "0.1.0", 
     // These are copied over from jib-core and are necessary for the jib-core sourcesets.
-    "com.google.http-client"     % "google-http-client" % "1.23.0",
-    "org.apache.commons"         % "commons-compress"   % "1.17",
-    "com.google.guava"           % "guava"              % "23.5-jre",
-    "com.fasterxml.jackson.core" % "jackson-databind"   % "2.9.6",
-    "org.slf4j"                  % "slf4j-api"          % "1.7.25",
-    "org.javassist"              % "javassist"          % "3.22.0-GA"
+//    "com.google.http-client"     % "google-http-client" % "1.23.0",
+//    "org.apache.commons"         % "commons-compress"   % "1.17",
+//    "com.google.guava"           % "guava"              % "23.5-jre",
+//    "com.fasterxml.jackson.core" % "jackson-databind"   % "2.9.6",
+//    "org.slf4j"                  % "slf4j-api"          % "1.7.25",
+//    "org.javassist"              % "javassist"          % "3.22.0-GA"
   ),
   releaseCrossBuild := true, // true if you cross-build the project for multiple Scala versions
   releaseProcess := Seq[ReleaseStep](

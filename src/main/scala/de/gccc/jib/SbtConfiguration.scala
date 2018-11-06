@@ -3,15 +3,18 @@ package de.gccc.jib
 import java.io.File
 import java.nio.file.{ Files, Path }
 
-import com.google.cloud.tools.jib.builder.BuildLogger
+import com.google.cloud.tools.jib.api.RegistryImage
 import com.google.cloud.tools.jib.configuration.LayerConfiguration
-import com.google.cloud.tools.jib.frontend.{ HelpfulSuggestions, ProjectProperties }
+import com.google.cloud.tools.jib.configuration.credentials.Credential
+import com.google.cloud.tools.jib.filesystem.AbsoluteUnixPath
+import com.google.cloud.tools.jib.frontend.{ CredentialRetrieverFactory, JavaEntrypointConstructor }
 import com.google.cloud.tools.jib.http.Authorizations
-import com.google.cloud.tools.jib.image.{ ImageReference, LayerEntry }
+import com.google.cloud.tools.jib.image.ImageReference
 import com.google.cloud.tools.jib.registry.credentials.RegistryCredentials
 import com.google.common.collect.ImmutableList
 import sbt.librarymanagement.ivy.{ Credentials, DirectCredentials }
 import sbt.util.Logger
+
 import scala.collection.JavaConverters._
 
 private[jib] class SbtConfiguration(
@@ -25,7 +28,7 @@ private[jib] class SbtConfiguration(
     val organization: String,
     val name: String,
     val version: String
-) extends ProjectProperties {
+) {
 
   private def generateCredentials(sbtCreds: Option[DirectCredentials], usernameEnv: String, passwdEnv: String) = {
     sbtCreds.orElse {
@@ -36,25 +39,20 @@ private[jib] class SbtConfiguration(
         password <- passwordOption
       } yield new DirectCredentials("", "", username, password)
     }.map { sbtCredentials =>
-      new RegistryCredentials(
-        "sbt",
-        Authorizations.withBasicCredentials(sbtCredentials.userName, sbtCredentials.passwd)
-      )
+      Credential.basic(sbtCredentials.userName, sbtCredentials.passwd)
     }
   }
 
   private val PLUGIN_NAME     = "jib-sbt-plugin"
   private val JAR_PLUGIN_NAME = "'sbt-jar-plugin'"
 
-  override lazy val getLogger: BuildLogger = new SbtBuildLogger(logger)
+  def getPluginName: String = PLUGIN_NAME
 
-  override def getPluginName: String = PLUGIN_NAME
-
-  override def getLayerConfigurations: ImmutableList[LayerConfiguration] = {
+  def getLayerConfigurations: ImmutableList[LayerConfiguration] = {
     ImmutableList.copyOf[LayerConfiguration](layerConfigurations.asJavaCollection)
   }
 
-  override def getCacheDirectory: Path = {
+  def getCacheDirectory: Path = {
     val targetPath = targetValue.toPath
     if (Files.notExists(targetPath)) {
       Files.createDirectories(targetPath)
@@ -62,18 +60,10 @@ private[jib] class SbtConfiguration(
     targetPath
   }
 
-  override def getJarPluginName: String = JAR_PLUGIN_NAME
+  def getJarPluginName: String = JAR_PLUGIN_NAME
 
   /** @return the name of the main class configured in a jar plugin, or null if none is found. */
-  override def getMainClassFromJar: String = mainClass.orNull
-
-  /**
-   * @param prefix the prefix message for the { @link HelpfulSuggestions}.
-   * @return a { @link HelpfulSuggestions} instance for main class inference failure.
-   */
-  override def getMainClassHelpfulSuggestions(prefix: String): HelpfulSuggestions = {
-    SbtConfiguration.helpfulSuggestionProvider(prefix)
-  }
+  def getMainClassFromJar: String = mainClass.orNull
 
   lazy val targetImageReference: ImageReference = {
     // TODO: actually organization is probably not a good idea to use
@@ -82,7 +72,7 @@ private[jib] class SbtConfiguration(
     ImageReference.of(registry, repository, version)
   }
 
-  lazy val baseImageCredentials: Option[RegistryCredentials] = {
+  lazy val baseImageCredentials: Option[Credential] = {
     generateCredentials(
       credentials.collectFirst { case d: DirectCredentials if d.host == baseImageReference.getRegistry => d },
       "JIB_BASE_IMAGE_USERNAME",
@@ -90,7 +80,7 @@ private[jib] class SbtConfiguration(
     )
   }
 
-  lazy val targetImageCredentials: Option[RegistryCredentials] = {
+  lazy val targetImageCredentials: Option[Credential] = {
     generateCredentials(
       credentials.collectFirst { case d: DirectCredentials if d.host == targetImageReference.getRegistry => d },
       "JIB_TARGET_IMAGE_USERNAME",
@@ -98,24 +88,35 @@ private[jib] class SbtConfiguration(
     )
   }
 
-  override def getDependenciesLayerEntry: LayerEntry         = null
-  override def getSnapshotDependenciesLayerEntry: LayerEntry = null
-  override def getResourcesLayerEntry: LayerEntry            = null
-  override def getClassesLayerEntry: LayerEntry              = null
-  override def getExtraFilesLayerEntry: LayerEntry           = null
-}
+  def entrypoint(jvmFlags: List[String]): java.util.List[String] = {
+    JavaEntrypointConstructor.makeDefaultEntrypoint(AbsoluteUnixPath.get("/"), jvmFlags.asJava, getMainClassFromJar)
+  }
 
-private[jib] object SbtConfiguration {
+  private def imageFactory(imageReference: ImageReference,
+                           credentials: Option[Credential],
+                           credHelper: Option[String]) = {
 
-  def helpfulSuggestionProvider(messagePrefix: String): HelpfulSuggestions = {
-    new HelpfulSuggestions(
-      messagePrefix,
-      "sbt clean",
-      "from.credHelper",
-      ignored => "from.auth",
-      "to.credHelper",
-      ignored => "to.auth"
-    )
+    val baseImage = RegistryImage.named(imageReference)
+
+    credentials.foreach { credential =>
+      baseImage.addCredential(credential.getUsername, credential.getPassword)
+    }
+
+    credHelper.foreach { helper =>
+      baseImage.addCredentialRetriever(
+        CredentialRetrieverFactory.forImage(baseImageReference).dockerCredentialHelper(helper)
+      )
+    }
+
+    baseImage
+  }
+
+  def baseImageFactory(jibBaseImageCredentialHelper: Option[String]): RegistryImage = {
+    imageFactory(baseImageReference, baseImageCredentials, jibBaseImageCredentialHelper)
+  }
+
+  def targetImageFactory(jibTargetImageCredentialHelper: Option[String]): RegistryImage = {
+    imageFactory(targetImageReference, targetImageCredentials, jibTargetImageCredentialHelper)
   }
 
 }

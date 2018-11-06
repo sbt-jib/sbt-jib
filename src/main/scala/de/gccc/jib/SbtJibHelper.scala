@@ -3,6 +3,7 @@ package de.gccc.jib
 import java.io.File
 
 import com.google.cloud.tools.jib.configuration.LayerConfiguration
+import com.google.cloud.tools.jib.filesystem.AbsoluteUnixPath
 import com.google.common.collect.ImmutableList
 
 import scala.collection.JavaConverters._
@@ -35,7 +36,9 @@ private[jib] object SbtJibHelper {
       .sortBy(_._1)
       .foreach {
         case (pathOnImage, sourceFiles) =>
-          layerConfiguration.addEntry(sourceFiles, pathOnImage)
+          sourceFiles.forEach { path =>
+            layerConfiguration.addEntryRecursive(path, AbsoluteUnixPath.get(pathOnImage))
+          }
       }
 
     layerConfiguration.build()
