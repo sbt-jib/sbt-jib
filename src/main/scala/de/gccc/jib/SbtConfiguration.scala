@@ -8,9 +8,7 @@ import com.google.cloud.tools.jib.configuration.LayerConfiguration
 import com.google.cloud.tools.jib.configuration.credentials.Credential
 import com.google.cloud.tools.jib.filesystem.AbsoluteUnixPath
 import com.google.cloud.tools.jib.frontend.{ CredentialRetrieverFactory, JavaEntrypointConstructor }
-import com.google.cloud.tools.jib.http.Authorizations
 import com.google.cloud.tools.jib.image.ImageReference
-import com.google.cloud.tools.jib.registry.credentials.RegistryCredentials
 import com.google.common.collect.ImmutableList
 import sbt.librarymanagement.ivy.{ Credentials, DirectCredentials }
 import sbt.util.Logger

@@ -1,59 +1,53 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.cache.CacheDirectoryCreationException
-import com.google.cloud.tools.jib.configuration.{ BuildConfiguration, CacheConfiguration }
-import com.google.cloud.tools.jib.docker.DockerClient
-import com.google.cloud.tools.jib.frontend.{ BuildStepsExecutionException, BuildStepsRunner, JavaEntrypointConstructor }
-import com.google.cloud.tools.jib.image.ImageReference
-import com.google.cloud.tools.jib.registry.RegistryClient
-
-import scala.collection.JavaConverters._
-
 private[jib] object SbtDockerBuild {
 
-  private val USER_AGENT_SUFFIX = "jib-sbt-plugin"
+  // private val USER_AGENT_SUFFIX = "jib-sbt-plugin"
 
   def task(
       configuration: SbtConfiguration,
       jibBaseImageCredentialHelper: Option[String],
+      jibTargetImageCredentialHelper: Option[String],
       defaultImage: String,
       jvmFlags: List[String],
-      args: List[String]
+      args: List[String],
+      environment: Map[String, String]
   ): Unit = {
-    val HELPFUL_SUGGESTIONS = SbtConfiguration.helpfulSuggestionProvider("Build to Docker daemon failed")
-
+    throw new Exception("Building to Docker Clients is currently unsupported")
+    /*
     if (!new DockerClient().isDockerInstalled) {
-      throw new Exception(HELPFUL_SUGGESTIONS.forDockerNotInstalled())
+      throw new Exception("Build to Docker daemon failed")
     }
-
-    val baseImageReference = ImageReference.parse(defaultImage)
-
-    val buildLogger = configuration.getLogger
-
-    val buildConfiguration =
-      BuildConfiguration
-        .builder(buildLogger)
-        .setBaseImage(baseImageReference)
-        .setTargetImage(configuration.targetImageReference)
-        .setBaseImageCredentialHelperName(jibBaseImageCredentialHelper.orNull)
-        .setKnownBaseRegistryCredentials(configuration.baseImageCredentials.orNull)
-        .setJavaArguments(args.asJava)
-        .setEntrypoint(
-          JavaEntrypointConstructor.makeDefaultEntrypoint(jvmFlags.asJava, configuration.getMainClassFromJar)
-        )
-        .setLayerConfigurations(configuration.getLayerConfigurations)
-        .setBaseImageLayersCacheConfiguration(CacheConfiguration.makeTemporary())
-        .setApplicationLayersCacheConfiguration(CacheConfiguration.makeTemporary())
-        .build()
-
-    RegistryClient.setUserAgentSuffix(USER_AGENT_SUFFIX)
 
     try {
-      BuildStepsRunner.forBuildToDockerDaemon(buildConfiguration).build(HELPFUL_SUGGESTIONS)
+      val targetImage = DockerDaemonImage.named(configuration.targetImageReference)
+
+
+      val jib = Jib.from(configuration.baseImageFactory(jibTargetImageCredentialHelper))
+
+      configuration.getLayerConfigurations.forEach { configuration =>
+        jib.addLayer(configuration)
+      }
+
+      jib
+        .setEnvironment(environment.asJava)
+        .setProgramArguments(args.asJava)
+        .setFormat(ImageFormat.Docker)
+        .setEntrypoint(configuration.entrypoint(jvmFlags))
+        .containerize(
+          Containerizer
+            .to(configuration.targetImageFactory(jibTargetImageCredentialHelper))
+            .setToolName(USER_AGENT_SUFFIX)
+
+          // .setBaseImageLayersCache()
+          // .setApplicationLayersCache()
+        )
+
     } catch {
-      case e @ (_: CacheDirectoryCreationException | _: BuildStepsExecutionException) =>
+      case e @ (_: CacheDirectoryCreationException) =>
         throw new Exception(e.getMessage, e.getCause)
     }
+    */
   }
 
 }

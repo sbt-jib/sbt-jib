@@ -98,9 +98,11 @@ object JibPlugin extends AutoPlugin {
     jibDockerBuild := SbtDockerBuild.task(
       Private.sbtConfiguration.value,
       jibBaseImageCredentialHelper.value,
+      jibTargetImageCredentialHelper.value,
       jibBaseImage.value,
       jibJvmFlags.value,
-      jibArgs.value
+      jibArgs.value,
+      jibEnvironment.value
     ),
     jibImageBuild := SbtImageBuild.task(
       Private.sbtConfiguration.value,

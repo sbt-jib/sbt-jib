@@ -3,8 +3,7 @@ package de.gccc.jib
 import java.io.File
 
 import com.google.cloud.tools.jib.configuration.LayerConfiguration
-import sbt.Keys.target
-import sbt.{ Keys, _ }
+import sbt._
 
 object SbtLayerConfigurations {
 
