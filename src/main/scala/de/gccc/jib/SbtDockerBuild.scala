@@ -1,10 +1,12 @@
 package de.gccc.jib
+import sbt.internal.util.ManagedLogger
 
 private[jib] object SbtDockerBuild {
 
   // private val USER_AGENT_SUFFIX = "jib-sbt-plugin"
 
   def task(
+      logger: ManagedLogger,
       configuration: SbtConfiguration,
       jibBaseImageCredentialHelper: Option[String],
       jibTargetImageCredentialHelper: Option[String],
@@ -43,6 +45,7 @@ private[jib] object SbtDockerBuild {
           // .setApplicationLayersCache()
         )
 
+      logger.info("image successfully created & uploaded")
     } catch {
       case e @ (_: CacheDirectoryCreationException) =>
         throw new Exception(e.getMessage, e.getCause)

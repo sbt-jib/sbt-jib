@@ -4,14 +4,17 @@ import com.google.cloud.tools.jib.api.{ Containerizer, Jib }
 import com.google.cloud.tools.jib.configuration.CacheDirectoryCreationException
 import com.google.cloud.tools.jib.image.ImageFormat
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
+import sbt.internal.util.ManagedLogger
 
 import scala.collection.JavaConverters._
+import scala.util.control.NonFatal
 
 private[jib] object SbtImageBuild {
 
   private val USER_AGENT_SUFFIX = "jib-sbt-plugin"
 
   def task(
+      logger: ManagedLogger,
       configuration: SbtConfiguration,
       jibBaseImageCredentialHelper: Option[String],
       jibTargetImageCredentialHelper: Option[String],
@@ -43,13 +46,14 @@ private[jib] object SbtImageBuild {
           Containerizer
             .to(configuration.targetImageFactory(jibTargetImageCredentialHelper))
             .setToolName(USER_AGENT_SUFFIX)
-            // .setBaseImageLayersCache()
-            // .setApplicationLayersCache()
+          // .setBaseImageLayersCache()
+          // .setApplicationLayersCache()
         )
 
+      logger.info("image successfully created & uploaded")
     } catch {
-      case e @ (_: CacheDirectoryCreationException) =>
-        throw new Exception(e.getMessage, e.getCause)
+      case NonFatal(t) =>
+        logger.error(s"could not create image (Exception: $t)")
     }
   }
 
