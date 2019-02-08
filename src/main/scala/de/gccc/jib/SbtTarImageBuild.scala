@@ -40,9 +40,8 @@ private[jib] object SbtTarImageBuild {
                                              configuration.organization + "/" + configuration.name,
                                              configuration.version)
 
-      val containerizer = {
-        Containerizer.to(new TarImage.Builder(imageReference).saveTo(home.toPath)).setToolName(USER_AGENT_SUFFIX)
-      }
+      val image         = TarImage.named(imageReference).saveTo(home.toPath)
+      val containerizer = Containerizer.to(image).setToolName(USER_AGENT_SUFFIX)
 
       jib
         .setEnvironment(environment.asJava)
