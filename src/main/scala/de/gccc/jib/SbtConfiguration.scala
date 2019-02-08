@@ -87,7 +87,8 @@ private[jib] class SbtConfiguration(
   }
 
   def entrypoint(jvmFlags: List[String]): java.util.List[String] = {
-    JavaEntrypointConstructor.makeDefaultEntrypoint(AbsoluteUnixPath.get("/"), jvmFlags.asJava, getMainClassFromJar)
+    val appRoot = AbsoluteUnixPath.get("/app")
+    JavaEntrypointConstructor.makeDefaultEntrypoint(appRoot, jvmFlags.asJava, getMainClassFromJar)
   }
 
   private def imageFactory(imageReference: ImageReference,

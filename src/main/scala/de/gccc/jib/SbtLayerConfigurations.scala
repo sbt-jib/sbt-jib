@@ -18,39 +18,43 @@ object SbtLayerConfigurations {
   ): List[LayerConfiguration] = {
 
     val internalDependenciesLayer = {
-      SbtJibHelper.mappingsConverter(reproducibleDependencies(targetDirectory, internalDependencies))
+      SbtJibHelper.mappingsConverter("internal", reproducibleDependencies(targetDirectory, internalDependencies))
     }
     val externalDependenciesLayer = {
-      SbtJibHelper.mappingsConverter(MappingsHelper.fromClasspath(external.seq, "/app/libs"))
+      SbtJibHelper.mappingsConverter("libs", MappingsHelper.fromClasspath(external.seq, "/app/libs"))
     }
 
     val resourcesLayer = {
       SbtJibHelper.mappingsConverter(
+        "conf",
         resourceDirectories.flatMap(MappingsHelper.contentOf(_, "/app/resources", _.isFile))
       )
     }
 
     val specialResourcesLayer = {
-      SbtJibHelper.mappingsConverter(MappingsHelper.contentOf(specialResourceDirectory, "/app/resources", _.isFile))
+      SbtJibHelper.mappingsConverter("resources",
+                                     MappingsHelper.contentOf(specialResourceDirectory, "/app/resources", _.isFile))
     }
 
-    val extraLayer = if (extraMappings.nonEmpty) SbtJibHelper.mappingsConverter(extraMappings.filter(_._1.isFile)) :: Nil else Nil
+    val extraLayer =
+      if (extraMappings.nonEmpty) SbtJibHelper.mappingsConverter("extra", extraMappings.filter(_._1.isFile)) :: Nil
+      else Nil
 
     val allClasses = classes
     // we only want class-files in our classes layer
     // FIXME: not just extensions checking?
       .flatMap(MappingsHelper.contentOf(_, "/app/classes", f => if (f.isFile) f.getName.endsWith(".class") else false))
 
-    val classesLayer = SbtJibHelper.mappingsConverter(allClasses)
+    val classesLayer = SbtJibHelper.mappingsConverter("classes", allClasses)
 
     // the ordering here is really important
-    extraLayer ::: List(
+    (extraLayer ::: List(
       externalDependenciesLayer,
       resourcesLayer,
       internalDependenciesLayer,
       specialResourcesLayer,
       classesLayer
-    )
+    )).filterNot(lc => lc.getLayerEntries.isEmpty)
   }
 
   private def reproducibleDependencies(targetDirectory: File, internalDependencies: Keys.Classpath) = {

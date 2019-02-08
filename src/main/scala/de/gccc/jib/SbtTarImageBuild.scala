@@ -1,5 +1,7 @@
 package de.gccc.jib
 
+import java.nio.file.Files
+
 import com.google.cloud.tools.jib.api.{ Containerizer, Jib, TarImage }
 import com.google.cloud.tools.jib.image.{ ImageFormat, ImageReference }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
@@ -23,34 +25,34 @@ private[jib] object SbtTarImageBuild {
       imageFormat: JibImageFormat,
       environment: Map[String, String]
   ): Unit = {
-
     val internalImageFormat = imageFormat match {
       case JibImageFormat.Docker => ImageFormat.Docker
       case JibImageFormat.OCI    => ImageFormat.OCI
     }
 
     try {
-      val jib = Jib.from(configuration.baseImageFactory(jibBaseImageCredentialHelper))
+      val imageReference = ImageReference.of(configuration.registry,
+                                         configuration.organization + "/" + configuration.name,
+                                         configuration.version)
 
-      configuration.getLayerConfigurations.forEach { configuration =>
-        jib.addLayer(configuration)
-      }
+      val image = TarImage.named(imageReference).saveTo(home.toPath)
 
-      var imageReference = ImageReference.of(configuration.registry,
-                                             configuration.organization + "/" + configuration.name,
-                                             configuration.version)
+      val containerizer = Containerizer
+        .to(image)
+        .setToolName(USER_AGENT_SUFFIX)
+        .setApplicationLayersCache(Files.createTempDirectory("jib-application-layer-cache"))
+        .setBaseImageLayersCache(Files.createTempDirectory("jib-base-image-layer-cache"))
 
-      val image         = TarImage.named(imageReference).saveTo(home.toPath)
-      val containerizer = Containerizer.to(image).setToolName(USER_AGENT_SUFFIX)
-
-      jib
+      Jib
+        .from(configuration.baseImageFactory(jibBaseImageCredentialHelper))
+        .setLayers(configuration.getLayerConfigurations)
         .setEnvironment(environment.asJava)
         .setProgramArguments(args.asJava)
         .setFormat(internalImageFormat)
         .setEntrypoint(configuration.entrypoint(jvmFlags))
         .containerize(containerizer)
 
-      logger.info("image successfully created & uploaded")
+      logger.success("image successfully created & uploaded")
     } catch {
       case NonFatal(t) =>
         logger.error(s"could not create tar image (Exception: $t)")
