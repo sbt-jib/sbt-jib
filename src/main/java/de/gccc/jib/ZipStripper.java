@@ -36,6 +36,7 @@ public final class ZipStripper implements Stripper
             = LocalDateTime.of(2000, 1, 1, 0, 0, 0, 0).atZone(ZoneOffset.systemDefault())
             .toInstant().toEpochMilli();
 
+    // CHECKSTYLE IGNORE LINE: ReturnCount
     /**
      * Comparator used to sort the files in the ZIP file.
      * This is mostly an alphabetical order comparator, with the exception that
@@ -43,30 +44,20 @@ public final class ZipStripper implements Stripper
      * because this is required by some tools
      * (cf. https://github.com/Zlika/reproducible-build-maven-plugin/issues/16).
      */
-    private static final Comparator<String> MANIFEST_FILE_SORT_COMPARATOR = new Comparator<String>()
-    {
-        // CHECKSTYLE IGNORE LINE: ReturnCount
-        @Override
-        public int compare(String o1, String o2)
-        {
-            if ("META-INF/MANIFEST.MF".equals(o1))
-            {
-                return -1;
-            }
-            if ("META-INF/MANIFEST.MF".equals(o2))
-            {
-                return 1;
-            }
-            if ("META-INF/".equals(o1))
-            {
-                return -1;
-            }
-            if ("META-INF/".equals(o2))
-            {
-                return 1;
-            }
-            return o1.compareTo(o2);
+    private static final Comparator<String> MANIFEST_FILE_SORT_COMPARATOR = (o1, o2) -> {
+        if ("META-INF/MANIFEST.MF".equals(o1)) {
+            return -1;
         }
+        if ("META-INF/MANIFEST.MF".equals(o2)) {
+            return 1;
+        }
+        if ("META-INF/".equals(o1)) {
+            return -1;
+        }
+        if ("META-INF/".equals(o2)) {
+            return 1;
+        }
+        return o1.compareTo(o2);
     };
 
     private final Map<String, Stripper> subFilters = new HashMap<>();
@@ -156,7 +147,7 @@ public final class ZipStripper implements Stripper
     private List<String> sortEntriesByName(Enumeration<ZipArchiveEntry> entries)
     {
         return Collections.list(entries).stream()
-                .map(e -> e.getName())
+                .map(ZipArchiveEntry::getName)
                 .sorted(MANIFEST_FILE_SORT_COMPARATOR)
                 .collect(Collectors.toList());
     }

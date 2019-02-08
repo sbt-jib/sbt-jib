@@ -2,19 +2,20 @@ package de.gccc.jib
 
 import java.nio.file.Files
 
-import com.google.cloud.tools.jib.api.{ Containerizer, Jib }
-import com.google.cloud.tools.jib.image.ImageFormat
+import com.google.cloud.tools.jib.api.{ Containerizer, Jib, TarImage }
+import com.google.cloud.tools.jib.image.{ ImageFormat, ImageReference }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
 
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
-private[jib] object SbtImageBuild {
+private[jib] object SbtTarImageBuild {
 
   private val USER_AGENT_SUFFIX = "jib-sbt-plugin"
 
   def task(
+      home: sbt.File,
       logger: ManagedLogger,
       configuration: SbtConfiguration,
       jibBaseImageCredentialHelper: Option[String],
@@ -24,15 +25,20 @@ private[jib] object SbtImageBuild {
       imageFormat: JibImageFormat,
       environment: Map[String, String]
   ): Unit = {
-
     val internalImageFormat = imageFormat match {
       case JibImageFormat.Docker => ImageFormat.Docker
       case JibImageFormat.OCI    => ImageFormat.OCI
     }
 
     try {
+      val imageReference = ImageReference.of(configuration.registry,
+                                         configuration.organization + "/" + configuration.name,
+                                         configuration.version)
+
+      val image = TarImage.named(imageReference).saveTo(home.toPath)
+
       val containerizer = Containerizer
-        .to(configuration.targetImageFactory(jibTargetImageCredentialHelper))
+        .to(image)
         .setToolName(USER_AGENT_SUFFIX)
         .setApplicationLayersCache(Files.createTempDirectory("jib-application-layer-cache"))
         .setBaseImageLayersCache(Files.createTempDirectory("jib-base-image-layer-cache"))
@@ -49,7 +55,7 @@ private[jib] object SbtImageBuild {
       logger.success("image successfully created & uploaded")
     } catch {
       case NonFatal(t) =>
-        logger.error(s"could not create image (Exception: $t)")
+        logger.error(s"could not create tar image (Exception: $t)")
     }
   }
 

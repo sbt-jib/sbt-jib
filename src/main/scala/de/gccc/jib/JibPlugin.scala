@@ -6,12 +6,13 @@ import com.google.cloud.tools.jib.configuration.LayerConfiguration
 import com.google.cloud.tools.jib.image.ImageReference
 import sbt._
 import sbt.Keys._
+import complete.DefaultParsers._
 
 object JibPlugin extends AutoPlugin {
 
   object autoImport {
-    val Jib: Configuration         = config("jib")
-    val JibExtra: Configuration    = config("jib-extra-files")
+    val Jib: Configuration      = config("jib")
+    val JibExtra: Configuration = config("jib-extra-files")
 
     sealed trait JibImageFormat
     object JibImageFormat {
@@ -26,6 +27,7 @@ object JibPlugin extends AutoPlugin {
     val jibImageFormat                 = settingKey[JibImageFormat]("jib default image format")
     val jibDockerBuild                 = taskKey[Unit]("jib build docker image")
     val jibImageBuild                  = taskKey[Unit]("jib build image (does not need docker)")
+    val jibTarImageBuild               = inputKey[Unit]("jib build tar image")
     val jibTargetImageCredentialHelper = settingKey[Option[String]]("jib base image credential helper")
     val jibRegistry                    = settingKey[String]("jib target image registry (defaults to docker hub)")
     val jibOrganization                = settingKey[String]("jib docker organization (defaults to organization)")
@@ -96,13 +98,17 @@ object JibPlugin extends AutoPlugin {
       )
     },
     jibDockerBuild := SbtDockerBuild.task(
+      streams.value.log,
       Private.sbtConfiguration.value,
       jibBaseImageCredentialHelper.value,
+      jibTargetImageCredentialHelper.value,
       jibBaseImage.value,
       jibJvmFlags.value,
-      jibArgs.value
+      jibArgs.value,
+      jibEnvironment.value
     ),
     jibImageBuild := SbtImageBuild.task(
+      streams.value.log,
       Private.sbtConfiguration.value,
       jibBaseImageCredentialHelper.value,
       jibTargetImageCredentialHelper.value,
@@ -111,6 +117,27 @@ object JibPlugin extends AutoPlugin {
       jibImageFormat.value,
       jibEnvironment.value
     ),
+    jibTarImageBuild := {
+      val args = spaceDelimited("<path>").parsed
+      args.headOption.foreach { pathString =>
+        val file = new File(pathString)
+        SbtTarImageBuild.task(
+          file,
+          streams.value.log,
+          Private.sbtConfiguration.value,
+          jibBaseImageCredentialHelper.value,
+          jibTargetImageCredentialHelper.value,
+          jibJvmFlags.value,
+          jibArgs.value,
+          jibImageFormat.value,
+          jibEnvironment.value
+        )
+      }
+
+      if (args.headOption.isEmpty) {
+        streams.value.log.error("could not create jib tar image, cause path is not set")
+      }
+    },
     jibDockerBuild := jibDockerBuild.dependsOn(compile in Compile).value,
     jibImageBuild := jibImageBuild.dependsOn(compile in Compile).value,
   )
