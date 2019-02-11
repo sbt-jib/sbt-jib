@@ -95,19 +95,21 @@ private[jib] class SbtConfiguration(
                            credentials: Option[Credential],
                            credHelper: Option[String]) = {
 
-    val baseImage = RegistryImage.named(imageReference)
+    val image = RegistryImage.named(imageReference)
 
-    credentials.foreach { credential =>
-      baseImage.addCredential(credential.getUsername, credential.getPassword)
-    }
+    image.addCredentialRetriever(CredentialRetrieverFactory.forImage(imageReference).inferCredentialHelper())
 
     credHelper.foreach { helper =>
-      baseImage.addCredentialRetriever(
-        CredentialRetrieverFactory.forImage(baseImageReference).dockerCredentialHelper(helper)
+      image.addCredentialRetriever(
+        CredentialRetrieverFactory.forImage(imageReference).dockerCredentialHelper(helper)
       )
     }
 
-    baseImage
+    credentials.foreach { credential =>
+      image.addCredential(credential.getUsername, credential.getPassword)
+    }
+
+    image
   }
 
   def baseImageFactory(jibBaseImageCredentialHelper: Option[String]): RegistryImage = {
