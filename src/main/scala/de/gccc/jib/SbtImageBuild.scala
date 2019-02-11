@@ -50,6 +50,7 @@ private[jib] object SbtImageBuild {
     } catch {
       case NonFatal(t) =>
         logger.error(s"could not create image (Exception: $t)")
+        throw t
     }
   }
 

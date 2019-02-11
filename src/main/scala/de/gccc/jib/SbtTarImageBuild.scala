@@ -56,6 +56,7 @@ private[jib] object SbtTarImageBuild {
     } catch {
       case NonFatal(t) =>
         logger.error(s"could not create tar image (Exception: $t)")
+        throw t
     }
   }
 

@@ -49,6 +49,7 @@ private[jib] object SbtDockerBuild {
     } catch {
       case NonFatal(t) =>
         logger.error(s"could not create docker image (Exception: $t)")
+        throw t
     }
   }
 
