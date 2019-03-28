@@ -88,6 +88,7 @@ object JibPlugin extends AutoPlugin {
         sLog.value,
         Private.sbtLayerConfiguration.value,
         (mainClass in (Compile, packageBin)).value,
+        (discoveredMainClasses in (Compile, packageBin)).value,
         target.value / "jib" / "internal",
         credentials.value,
         baseImage,
