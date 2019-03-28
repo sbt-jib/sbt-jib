@@ -19,6 +19,7 @@ private[jib] class SbtConfiguration(
     logger: Logger,
     layerConfigurations: List[LayerConfiguration],
     mainClass: Option[String],
+    discoveredMainClasses: Seq[String],
     targetValue: File,
     credentials: Seq[Credentials],
     val baseImageReference: ImageReference,
@@ -60,9 +61,6 @@ private[jib] class SbtConfiguration(
 
   def getJarPluginName: String = JAR_PLUGIN_NAME
 
-  /** @return the name of the main class configured in a jar plugin, or null if none is found. */
-  def getMainClassFromJar: String = mainClass.orNull
-
   lazy val targetImageReference: ImageReference = {
     // TODO: actually organization is probably not a good idea to use
     // so we should add a jibOrganization and/or jibName to overwrite the project defaults if they might differ
@@ -88,7 +86,17 @@ private[jib] class SbtConfiguration(
 
   def entrypoint(jvmFlags: List[String]): java.util.List[String] = {
     val appRoot = AbsoluteUnixPath.get("/app")
-    JavaEntrypointConstructor.makeDefaultEntrypoint(appRoot, jvmFlags.asJava, getMainClassFromJar)
+    val pickedMainClass = mainClass.getOrElse {
+      discoveredMainClasses.toList match {
+        case one :: Nil => one
+        case first :: _ =>
+          logger.warn(s"using first discovered main class for entrypoint ($first) this may not be what you want. Use the mainClass setting to specify the one you want.")
+          first
+        case Nil =>
+          sys.error("no main class found for container image entrypoint")
+      }
+    }
+    JavaEntrypointConstructor.makeDefaultEntrypoint(appRoot, jvmFlags.asJava, pickedMainClass)
   }
 
   private def imageFactory(imageReference: ImageReference,
