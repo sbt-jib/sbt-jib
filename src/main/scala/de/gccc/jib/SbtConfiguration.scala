@@ -38,7 +38,7 @@ private[jib] class SbtConfiguration(
         password <- passwordOption
       } yield new DirectCredentials("", "", username, password)
     }.map { sbtCredentials =>
-      Credential.basic(sbtCredentials.userName, sbtCredentials.passwd)
+      Credential.from(sbtCredentials.userName, sbtCredentials.passwd)
     }
   }
 
