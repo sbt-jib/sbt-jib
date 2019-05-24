@@ -1,8 +1,7 @@
 package de.gccc.jib
 import java.nio.file.Files
-import java.time.Instant
 
-import com.google.cloud.tools.jib.api.{Containerizer, DockerDaemonImage, Jib}
+import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, Jib }
 import com.google.cloud.tools.jib.docker.DockerClient
 import com.google.cloud.tools.jib.image.ImageFormat
 import sbt.internal.util.ManagedLogger
