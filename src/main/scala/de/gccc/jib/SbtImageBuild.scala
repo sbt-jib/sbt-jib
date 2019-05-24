@@ -1,8 +1,9 @@
 package de.gccc.jib
 
 import java.nio.file.Files
+import java.time.Instant
 
-import com.google.cloud.tools.jib.api.{ Containerizer, Jib }
+import com.google.cloud.tools.jib.api.{Containerizer, Jib}
 import com.google.cloud.tools.jib.image.ImageFormat
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
@@ -22,7 +23,8 @@ private[jib] object SbtImageBuild {
       jvmFlags: List[String],
       args: List[String],
       imageFormat: JibImageFormat,
-      environment: Map[String, String]
+      environment: Map[String, String],
+      useCurrentTimestamp: Boolean
   ): Unit = {
 
     val internalImageFormat = imageFormat match {
@@ -44,6 +46,7 @@ private[jib] object SbtImageBuild {
         .setProgramArguments(args.asJava)
         .setFormat(internalImageFormat)
         .setEntrypoint(configuration.entrypoint(jvmFlags))
+        .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
         .containerize(containerizer)
 
       logger.success("image successfully created & uploaded")
