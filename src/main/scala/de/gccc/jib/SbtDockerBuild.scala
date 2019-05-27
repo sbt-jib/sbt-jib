@@ -21,7 +21,8 @@ private[jib] object SbtDockerBuild {
       defaultImage: String,
       jvmFlags: List[String],
       args: List[String],
-      environment: Map[String, String]
+      environment: Map[String, String],
+      useCurrentTimestamp: Boolean
   ): Unit = {
     if (!DockerClient.isDefaultDockerInstalled) {
       throw new Exception("Build to Docker daemon failed")
@@ -43,6 +44,7 @@ private[jib] object SbtDockerBuild {
         .setProgramArguments(args.asJava)
         .setFormat(ImageFormat.Docker)
         .setEntrypoint(configuration.entrypoint(jvmFlags))
+        .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
         .containerize(containerizer)
 
       logger.success("image successfully created & uploaded")

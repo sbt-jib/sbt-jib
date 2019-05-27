@@ -23,7 +23,8 @@ private[jib] object SbtTarImageBuild {
       jvmFlags: List[String],
       args: List[String],
       imageFormat: JibImageFormat,
-      environment: Map[String, String]
+      environment: Map[String, String],
+      useCurrentTimestamp: Boolean
   ): Unit = {
     val internalImageFormat = imageFormat match {
       case JibImageFormat.Docker => ImageFormat.Docker
@@ -50,6 +51,7 @@ private[jib] object SbtTarImageBuild {
         .setProgramArguments(args.asJava)
         .setFormat(internalImageFormat)
         .setEntrypoint(configuration.entrypoint(jvmFlags))
+        .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
         .containerize(containerizer)
 
       logger.success("image successfully created & uploaded")
