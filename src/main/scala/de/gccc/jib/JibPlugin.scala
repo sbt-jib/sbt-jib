@@ -24,6 +24,7 @@ object JibPlugin extends AutoPlugin {
     val jibBaseImageCredentialHelper   = settingKey[Option[String]]("jib base image credential helper")
     val jibJvmFlags                    = settingKey[List[String]]("jib default jvm flags")
     val jibArgs                        = settingKey[List[String]]("jib default args")
+    val jibEntrypoint                  = settingKey[Option[List[String]]]("jib entrypoint")
     val jibImageFormat                 = settingKey[JibImageFormat]("jib default image format")
     val jibDockerBuild                 = taskKey[Unit]("jib build docker image")
     val jibImageBuild                  = taskKey[Unit]("jib build image (does not need docker)")
@@ -53,6 +54,7 @@ object JibPlugin extends AutoPlugin {
     jibTargetImageCredentialHelper := None,
     jibJvmFlags := Nil,
     jibArgs := Nil,
+    jibEntrypoint := None,
     jibImageFormat := JibImageFormat.Docker,
     jibRegistry := "registry.hub.docker.com",
     jibOrganization := organization.value,
@@ -108,6 +110,7 @@ object JibPlugin extends AutoPlugin {
       jibBaseImage.value,
       jibJvmFlags.value,
       jibArgs.value,
+      jibEntrypoint.value,
       jibEnvironment.value,
       jibUseCurrentTimestamp.value
     ),
@@ -118,6 +121,7 @@ object JibPlugin extends AutoPlugin {
       jibTargetImageCredentialHelper.value,
       jibJvmFlags.value,
       jibArgs.value,
+      jibEntrypoint.value,
       jibImageFormat.value,
       jibEnvironment.value,
       jibUseCurrentTimestamp.value
@@ -134,6 +138,7 @@ object JibPlugin extends AutoPlugin {
           jibTargetImageCredentialHelper.value,
           jibJvmFlags.value,
           jibArgs.value,
+          jibEntrypoint.value,
           jibImageFormat.value,
           jibEnvironment.value,
           jibUseCurrentTimestamp.value
