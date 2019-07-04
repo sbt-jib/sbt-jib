@@ -2,7 +2,7 @@ package de.gccc.jib
 
 import java.io.File
 
-import com.google.cloud.tools.jib.configuration.LayerConfiguration
+import com.google.cloud.tools.jib.api.LayerConfiguration
 import sbt._
 
 object SbtLayerConfigurations {

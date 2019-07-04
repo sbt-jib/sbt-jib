@@ -1,16 +1,12 @@
 package de.gccc.jib
 
 import java.io.File
-import java.nio.file.{ Files, Path }
+import java.nio.file.{Files, Path}
 
-import com.google.cloud.tools.jib.api.RegistryImage
-import com.google.cloud.tools.jib.configuration.LayerConfiguration
-import com.google.cloud.tools.jib.configuration.credentials.Credential
-import com.google.cloud.tools.jib.filesystem.AbsoluteUnixPath
-import com.google.cloud.tools.jib.frontend.{ CredentialRetrieverFactory, JavaEntrypointConstructor }
-import com.google.cloud.tools.jib.image.ImageReference
+import com.google.cloud.tools.jib.api.{AbsoluteUnixPath, Credential, ImageReference, LayerConfiguration, RegistryImage}
+import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory
 import com.google.common.collect.ImmutableList
-import sbt.librarymanagement.ivy.{ Credentials, DirectCredentials }
+import sbt.librarymanagement.ivy.{Credentials, DirectCredentials}
 import sbt.util.Logger
 
 import scala.collection.JavaConverters._

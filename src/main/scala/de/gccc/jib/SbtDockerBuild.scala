@@ -1,9 +1,8 @@
 package de.gccc.jib
 import java.nio.file.Files
 
-import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, Jib }
+import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, Jib, ImageFormat }
 import com.google.cloud.tools.jib.docker.DockerClient
-import com.google.cloud.tools.jib.image.ImageFormat
 import sbt.internal.util.ManagedLogger
 
 import scala.collection.JavaConverters._
