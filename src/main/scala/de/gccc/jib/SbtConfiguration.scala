@@ -70,7 +70,7 @@ private[jib] class SbtConfiguration(
 
   lazy val baseImageCredentials: Option[Credential] = {
     generateCredentials(
-      credentials.collectFirst { case d: DirectCredentials if d.host == baseImageReference.getRegistry => d },
+      Credentials.forHost(credentials, baseImageReference.getRegistry),
       "JIB_BASE_IMAGE_USERNAME",
       "JIB_BASE_IMAGE_PASSWORD"
     )
@@ -78,7 +78,7 @@ private[jib] class SbtConfiguration(
 
   lazy val targetImageCredentials: Option[Credential] = {
     generateCredentials(
-      credentials.collectFirst { case d: DirectCredentials if d.host == targetImageReference.getRegistry => d },
+      Credentials.forHost(credentials, targetImageReference.getRegistry),
       "JIB_TARGET_IMAGE_USERNAME",
       "JIB_TARGET_IMAGE_PASSWORD"
     )
