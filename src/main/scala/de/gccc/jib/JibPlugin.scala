@@ -24,6 +24,7 @@ object JibPlugin extends AutoPlugin {
     val jibBaseImageCredentialHelper   = settingKey[Option[String]]("jib base image credential helper")
     val jibJvmFlags                    = settingKey[List[String]]("jib default jvm flags")
     val jibArgs                        = settingKey[List[String]]("jib default args")
+    val jibEntrypoint                  = settingKey[Option[List[String]]]("jib entrypoint")
     val jibImageFormat                 = settingKey[JibImageFormat]("jib default image format")
     val jibDockerBuild                 = taskKey[Unit]("jib build docker image")
     val jibImageBuild                  = taskKey[Unit]("jib build image (does not need docker)")
@@ -36,6 +37,7 @@ object JibPlugin extends AutoPlugin {
     val jibEnvironment                 = settingKey[Map[String, String]]("jib docker env variables")
     val jibMappings                    = taskKey[Seq[(File, String)]]("jib additional resource mappings")
     val jibExtraMappings               = taskKey[Seq[(File, String)]]("jib extra file mappings / i.e. java agents")
+    val jibUseCurrentTimestamp         = settingKey[Boolean]("jib use current timestamp for image creation time. Default to Epoch")
 
     private[jib] object Private {
       val sbtLayerConfiguration = taskKey[List[LayerConfiguration]]("jib layer configuration")
@@ -52,6 +54,7 @@ object JibPlugin extends AutoPlugin {
     jibTargetImageCredentialHelper := None,
     jibJvmFlags := Nil,
     jibArgs := Nil,
+    jibEntrypoint := None,
     jibImageFormat := JibImageFormat.Docker,
     jibRegistry := "registry.hub.docker.com",
     jibOrganization := organization.value,
@@ -62,6 +65,7 @@ object JibPlugin extends AutoPlugin {
     mappings in JibExtra := Nil,
     jibMappings := (mappings in Jib).value,
     jibExtraMappings := (mappings in JibExtra).value,
+    jibUseCurrentTimestamp := false,
     // private values
     Private.sbtLayerConfiguration := {
       val stageDirectory     = target.value / "jib" / "stage"
@@ -106,7 +110,9 @@ object JibPlugin extends AutoPlugin {
       jibBaseImage.value,
       jibJvmFlags.value,
       jibArgs.value,
-      jibEnvironment.value
+      jibEntrypoint.value,
+      jibEnvironment.value,
+      jibUseCurrentTimestamp.value
     ),
     jibImageBuild := SbtImageBuild.task(
       streams.value.log,
@@ -115,8 +121,10 @@ object JibPlugin extends AutoPlugin {
       jibTargetImageCredentialHelper.value,
       jibJvmFlags.value,
       jibArgs.value,
+      jibEntrypoint.value,
       jibImageFormat.value,
-      jibEnvironment.value
+      jibEnvironment.value,
+      jibUseCurrentTimestamp.value
     ),
     jibTarImageBuild := {
       val args = spaceDelimited("<path>").parsed
@@ -130,8 +138,10 @@ object JibPlugin extends AutoPlugin {
           jibTargetImageCredentialHelper.value,
           jibJvmFlags.value,
           jibArgs.value,
+          jibEntrypoint.value,
           jibImageFormat.value,
-          jibEnvironment.value
+          jibEnvironment.value,
+          jibUseCurrentTimestamp.value
         )
       }
 

@@ -21,8 +21,10 @@ private[jib] object SbtImageBuild {
       jibTargetImageCredentialHelper: Option[String],
       jvmFlags: List[String],
       args: List[String],
+      entrypoint: Option[List[String]],
       imageFormat: JibImageFormat,
-      environment: Map[String, String]
+      environment: Map[String, String],
+      useCurrentTimestamp: Boolean
   ): Unit = {
 
     val internalImageFormat = imageFormat match {
@@ -43,7 +45,8 @@ private[jib] object SbtImageBuild {
         .setEnvironment(environment.asJava)
         .setProgramArguments(args.asJava)
         .setFormat(internalImageFormat)
-        .setEntrypoint(configuration.entrypoint(jvmFlags))
+        .setEntrypoint(configuration.entrypoint(jvmFlags, entrypoint))
+        .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
         .containerize(containerizer)
 
       logger.success("image successfully created & uploaded")

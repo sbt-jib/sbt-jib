@@ -70,7 +70,7 @@ private[jib] class SbtConfiguration(
 
   lazy val baseImageCredentials: Option[Credential] = {
     generateCredentials(
-      credentials.collectFirst { case d: DirectCredentials if d.host == baseImageReference.getRegistry => d },
+      Credentials.forHost(credentials, baseImageReference.getRegistry),
       "JIB_BASE_IMAGE_USERNAME",
       "JIB_BASE_IMAGE_PASSWORD"
     )
@@ -78,25 +78,31 @@ private[jib] class SbtConfiguration(
 
   lazy val targetImageCredentials: Option[Credential] = {
     generateCredentials(
-      credentials.collectFirst { case d: DirectCredentials if d.host == targetImageReference.getRegistry => d },
+      Credentials.forHost(credentials, targetImageReference.getRegistry),
       "JIB_TARGET_IMAGE_USERNAME",
       "JIB_TARGET_IMAGE_PASSWORD"
     )
   }
 
-  def entrypoint(jvmFlags: List[String]): java.util.List[String] = {
-    val appRoot = AbsoluteUnixPath.get("/app")
-    val pickedMainClass = mainClass.getOrElse {
-      discoveredMainClasses.toList match {
-        case one :: Nil => one
-        case first :: _ =>
-          logger.warn(s"using first discovered main class for entrypoint ($first) this may not be what you want. Use the mainClass setting to specify the one you want.")
-          first
-        case Nil =>
-          sys.error("no main class found for container image entrypoint")
-      }
+  def entrypoint(jvmFlags: List[String], entrypoint: Option[List[String]]): java.util.List[String] = {
+    entrypoint match {
+      case Some(list) => list.asJava
+      case None =>
+        val appRoot = AbsoluteUnixPath.get("/app")
+        val pickedMainClass = mainClass.getOrElse {
+          discoveredMainClasses.toList match {
+            case one :: Nil => one
+            case first :: _ =>
+              logger.warn(
+                s"using first discovered main class for entrypoint ($first) this may not be what you want. Use the mainClass setting to specify the one you want."
+              )
+              first
+            case Nil =>
+              sys.error("no main class found for container image entrypoint")
+          }
+        }
+        JavaEntrypointConstructor.makeDefaultEntrypoint(appRoot, jvmFlags.asJava, pickedMainClass)
     }
-    JavaEntrypointConstructor.makeDefaultEntrypoint(appRoot, jvmFlags.asJava, pickedMainClass)
   }
 
   private def imageFactory(imageReference: ImageReference,
