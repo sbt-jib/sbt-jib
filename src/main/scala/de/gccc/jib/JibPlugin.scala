@@ -2,8 +2,8 @@ package de.gccc.jib
 
 import java.nio.file.Files
 
-import com.google.cloud.tools.jib.configuration.LayerConfiguration
-import com.google.cloud.tools.jib.image.ImageReference
+import com.google.cloud.tools.jib.api.LayerConfiguration
+import com.google.cloud.tools.jib.api.ImageReference
 import sbt._
 import sbt.Keys._
 import complete.DefaultParsers._

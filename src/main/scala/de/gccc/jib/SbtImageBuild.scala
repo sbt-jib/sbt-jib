@@ -2,8 +2,7 @@ package de.gccc.jib
 
 import java.nio.file.Files
 
-import com.google.cloud.tools.jib.api.{ Containerizer, Jib }
-import com.google.cloud.tools.jib.image.ImageFormat
+import com.google.cloud.tools.jib.api.{ Containerizer, Jib, ImageFormat }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
 
