@@ -4,7 +4,7 @@ script:
   - sbt "++${TRAVIS_SCALA_VERSION}" test
 matrix:
   include:
-  - jdk: oraclejdk8
+  - jdk: openjdk8
     scala: 2.12.8
   - jdk: openjdk11
     scala: 2.12.8
