@@ -3,7 +3,7 @@ package de.gccc.jib
 import java.io.File
 import java.nio.file.{Files, Path}
 
-import com.google.cloud.tools.jib.api.{AbsoluteUnixPath, Credential, ImageReference, LayerConfiguration, RegistryImage}
+import com.google.cloud.tools.jib.api.{AbsoluteUnixPath, Credential, ImageReference, LayerConfiguration, LogEvent, RegistryImage}
 import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory
 import com.google.common.collect.ImmutableList
 import sbt.librarymanagement.ivy.{Credentials, DirectCredentials}
@@ -107,9 +107,11 @@ private[jib] class SbtConfiguration(
 
     val image = RegistryImage.named(imageReference)
 
-    val factory = CredentialRetrieverFactory.forImage(imageReference)
+    val factory = CredentialRetrieverFactory.forImage(
+      imageReference,
+      { case (logEvent: LogEvent) => { /* no-op */} })
 
-    image.addCredentialRetriever(factory.inferCredentialHelper())
+    image.addCredentialRetriever(factory.wellKnownCredentialHelpers())
 
     credHelper.foreach { helper =>
       image.addCredentialRetriever(factory.dockerCredentialHelper(helper))
