@@ -36,7 +36,7 @@ private[jib] object SbtTarImageBuild {
                                          configuration.organization + "/" + configuration.name,
                                          configuration.version)
 
-      val image = TarImage.named(imageReference).saveTo(home.toPath)
+      val image = TarImage.at(home.toPath).named(imageReference)
 
       val containerizer = Containerizer
         .to(image)
