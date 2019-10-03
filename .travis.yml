@@ -5,6 +5,6 @@ script:
 matrix:
   include:
   - jdk: openjdk8
-    scala: 2.12.8
+    scala: 2.12.10
   - jdk: openjdk11
-    scala: 2.12.8
+    scala: 2.12.10
