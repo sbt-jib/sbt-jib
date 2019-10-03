@@ -2,7 +2,7 @@ import ReleaseTransformations._
 import xerial.sbt.Sonatype._
 
 organization := "de.gccc.sbt"
-scalaVersion := "2.12.8"
+scalaVersion := "2.12.10"
 sonatypeProfileName := "de.gccc"
 publishMavenStyle := true
 licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
