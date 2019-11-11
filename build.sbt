@@ -29,7 +29,7 @@ lazy val root = (project in file("."))
     name := "sbt-jib",
     // Add the default sonatype repository setting
     publishTo := sonatypePublishTo.value,
-    libraryDependencies += "com.google.cloud.tools" % "jib-core" % "0.11.0",
+    libraryDependencies += "com.google.cloud.tools" % "jib-core" % "0.12.0",
     releaseCrossBuild := true, // true if you cross-build the project for multiple Scala versions
     releaseProcess := Seq[ReleaseStep](
       checkSnapshotDependencies,
