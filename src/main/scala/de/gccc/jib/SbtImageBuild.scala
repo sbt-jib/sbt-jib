@@ -2,7 +2,7 @@ package de.gccc.jib
 
 import java.nio.file.Files
 
-import com.google.cloud.tools.jib.api.{ Containerizer, Jib, ImageFormat }
+import com.google.cloud.tools.jib.api.{ Containerizer, Jib, ImageFormat, ImageReference }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
 
@@ -24,7 +24,7 @@ private[jib] object SbtImageBuild {
       imageFormat: JibImageFormat,
       environment: Map[String, String],
       useCurrentTimestamp: Boolean
-  ): Unit = {
+  ): ImageReference = {
 
     val internalImageFormat = imageFormat match {
       case JibImageFormat.Docker => ImageFormat.Docker
@@ -49,6 +49,7 @@ private[jib] object SbtImageBuild {
         .containerize(containerizer)
 
       logger.success("image successfully created & uploaded")
+      return configuration.targetImageReference
     } catch {
       case NonFatal(t) =>
         logger.error(s"could not create image (Exception: $t)")
