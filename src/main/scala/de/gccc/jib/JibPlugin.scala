@@ -10,6 +10,8 @@ import complete.DefaultParsers._
 
 object JibPlugin extends AutoPlugin {
 
+  override def trigger: PluginTrigger = allRequirements
+
   object autoImport {
     val Jib: Configuration      = config("jib")
     val JibExtra: Configuration = config("jib-extra-files")
