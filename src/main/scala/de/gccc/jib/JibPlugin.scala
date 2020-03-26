@@ -37,7 +37,9 @@ object JibPlugin extends AutoPlugin {
     val jibEnvironment                 = settingKey[Map[String, String]]("jib docker env variables")
     val jibMappings                    = taskKey[Seq[(File, String)]]("jib additional resource mappings")
     val jibExtraMappings               = taskKey[Seq[(File, String)]]("jib extra file mappings / i.e. java agents")
-    val jibUseCurrentTimestamp         = settingKey[Boolean]("jib use current timestamp for image creation time. Default to Epoch")
+    val jibUseCurrentTimestamp =
+      settingKey[Boolean]("jib use current timestamp for image creation time. Default to Epoch")
+    val jibCustomRepositoryPath = settingKey[Option[String]]("jib custom repository path freeform path structure")
 
     private[jib] object Private {
       val sbtLayerConfiguration = taskKey[List[LayerConfiguration]]("jib layer configuration")
@@ -66,6 +68,7 @@ object JibPlugin extends AutoPlugin {
     jibMappings := (mappings in Jib).value,
     jibExtraMappings := (mappings in JibExtra).value,
     jibUseCurrentTimestamp := false,
+    jibCustomRepositoryPath := None,
     // private values
     Private.sbtLayerConfiguration := {
       val stageDirectory     = target.value / "jib" / "stage"
@@ -99,7 +102,8 @@ object JibPlugin extends AutoPlugin {
         jibRegistry.value,
         jibOrganization.value,
         jibName.value,
-        jibVersion.value
+        jibVersion.value,
+        jibCustomRepositoryPath.value
       )
     },
     jibDockerBuild := SbtDockerBuild.task(

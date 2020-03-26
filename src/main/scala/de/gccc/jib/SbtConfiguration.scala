@@ -1,12 +1,19 @@
 package de.gccc.jib
 
 import java.io.File
-import java.nio.file.{Files, Path}
+import java.nio.file.{ Files, Path }
 
-import com.google.cloud.tools.jib.api.{AbsoluteUnixPath, Credential, ImageReference, LayerConfiguration, LogEvent, RegistryImage}
+import com.google.cloud.tools.jib.api.{
+  AbsoluteUnixPath,
+  Credential,
+  ImageReference,
+  LayerConfiguration,
+  LogEvent,
+  RegistryImage
+}
 import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory
 import com.google.common.collect.ImmutableList
-import sbt.librarymanagement.ivy.{Credentials, DirectCredentials}
+import sbt.librarymanagement.ivy.{ Credentials, DirectCredentials }
 import sbt.util.Logger
 
 import scala.collection.JavaConverters._
@@ -22,8 +29,11 @@ private[jib] class SbtConfiguration(
     val registry: String,
     val organization: String,
     val name: String,
-    val version: String
+    val version: String,
+    customRepositoryPath: Option[String]
 ) {
+
+  val repository: String = customRepositoryPath.getOrElse(organization + "/" + name)
 
   private def generateCredentials(sbtCreds: Option[DirectCredentials], usernameEnv: String, passwdEnv: String) = {
     sbtCreds.orElse {
@@ -57,12 +67,8 @@ private[jib] class SbtConfiguration(
 
   def getJarPluginName: String = JAR_PLUGIN_NAME
 
-  lazy val targetImageReference: ImageReference = {
-    // TODO: actually organization is probably not a good idea to use
-    // so we should add a jibOrganization and/or jibName to overwrite the project defaults if they might differ
-    val repository = organization + "/" + name
+  lazy val targetImageReference: ImageReference =
     ImageReference.of(registry, repository, version)
-  }
 
   lazy val baseImageCredentials: Option[Credential] = {
     generateCredentials(
@@ -107,9 +113,7 @@ private[jib] class SbtConfiguration(
 
     val image = RegistryImage.named(imageReference)
 
-    val factory = CredentialRetrieverFactory.forImage(
-      imageReference,
-      { case (logEvent: LogEvent) => { /* no-op */} })
+    val factory = CredentialRetrieverFactory.forImage(imageReference, { case (logEvent: LogEvent) => { /* no-op */ } })
 
     image.addCredentialRetriever(factory.wellKnownCredentialHelpers())
 
