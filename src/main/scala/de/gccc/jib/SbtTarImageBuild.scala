@@ -32,9 +32,7 @@ private[jib] object SbtTarImageBuild {
     }
 
     try {
-      val imageReference = ImageReference.of(configuration.registry,
-                                         configuration.organization + "/" + configuration.name,
-                                         configuration.version)
+      val imageReference = ImageReference.of(configuration.registry, configuration.repository, configuration.version)
 
       val image = TarImage.at(home.toPath).named(imageReference)
 
