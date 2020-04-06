@@ -22,8 +22,9 @@ object JibPlugin extends AutoPlugin {
       case object OCI    extends JibImageFormat
     }
 
-    val jibBaseImage                   = settingKey[String]("jib base image")
-    val jibBaseImageCredentialHelper   = settingKey[Option[String]]("jib base image credential helper")
+    val jibBaseImage = settingKey[String]("jib base image")
+    val jibBaseImageCredentialHelper =
+      settingKey[Option[String]]("jib base image credential helper cli name (e.g. ecr-login)")
     val jibJvmFlags                    = settingKey[List[String]]("jib default jvm flags")
     val jibArgs                        = settingKey[List[String]]("jib default args")
     val jibEntrypoint                  = settingKey[Option[List[String]]]("jib entrypoint")
@@ -31,14 +32,17 @@ object JibPlugin extends AutoPlugin {
     val jibDockerBuild                 = taskKey[ImageReference]("jib build docker image")
     val jibImageBuild                  = taskKey[ImageReference]("jib build image (does not need docker)")
     val jibTarImageBuild               = inputKey[Unit]("jib build tar image")
-    val jibTargetImageCredentialHelper = settingKey[Option[String]]("jib base image credential helper")
+    val jibTargetImageCredentialHelper = settingKey[Option[String]]("jib target image credential helper cli name")
     val jibRegistry                    = settingKey[String]("jib target image registry (defaults to docker hub)")
     val jibOrganization                = settingKey[String]("jib docker organization (defaults to organization)")
     val jibName                        = settingKey[String]("jib image name (defaults to project name)")
     val jibVersion                     = settingKey[String]("jib version (defaults to version)")
     val jibEnvironment                 = settingKey[Map[String, String]]("jib docker env variables")
-    val jibMappings                    = taskKey[Seq[(File, String)]]("jib additional resource mappings")
-    val jibExtraMappings               = taskKey[Seq[(File, String)]]("jib extra file mappings / i.e. java agents")
+    val jibMappings = taskKey[Seq[(File, String)]](
+      "jib additional resource mappings, formatted as <source file resource> -> <full path on container>"
+    )
+    val jibExtraMappings =
+      taskKey[Seq[(File, String)]]("jib extra file mappings / i.e. java agents (see above for formatting)")
     val jibUseCurrentTimestamp =
       settingKey[Boolean]("jib use current timestamp for image creation time. Default to Epoch")
     val jibCustomRepositoryPath = settingKey[Option[String]]("jib custom repository path freeform path structure")
