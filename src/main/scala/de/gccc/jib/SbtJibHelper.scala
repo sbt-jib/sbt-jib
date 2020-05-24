@@ -2,7 +2,8 @@ package de.gccc.jib
 
 import java.io.File
 
-import com.google.cloud.tools.jib.api.{AbsoluteUnixPath, LayerConfiguration}
+import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath
+import com.google.cloud.tools.jib.api.LayerConfiguration
 
 private[jib] object SbtJibHelper {
 

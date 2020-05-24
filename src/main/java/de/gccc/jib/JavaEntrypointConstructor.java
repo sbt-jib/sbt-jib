@@ -16,8 +16,8 @@
 
 package de.gccc.jib;
 
-import com.google.cloud.tools.jib.api.AbsoluteUnixPath;
-import com.google.cloud.tools.jib.api.RelativeUnixPath;
+import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
+import com.google.cloud.tools.jib.api.buildplan.RelativeUnixPath;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

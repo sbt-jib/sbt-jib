@@ -4,12 +4,14 @@ import java.io.File
 import java.nio.file.{ Files, Path }
 
 import com.google.cloud.tools.jib.api.{
-  AbsoluteUnixPath,
   Credential,
   ImageReference,
   LayerConfiguration,
   LogEvent,
   RegistryImage
+}
+import com.google.cloud.tools.jib.api.buildplan.{
+  AbsoluteUnixPath
 }
 import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory
 import com.google.common.collect.ImmutableList
