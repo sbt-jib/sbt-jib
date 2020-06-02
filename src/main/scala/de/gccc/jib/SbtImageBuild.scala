@@ -24,6 +24,7 @@ private[jib] object SbtImageBuild {
       entrypoint: Option[List[String]],
       imageFormat: JibImageFormat,
       environment: Map[String, String],
+      user: Option[String],
       useCurrentTimestamp: Boolean
   ): ImageReference = {
 
@@ -43,6 +44,7 @@ private[jib] object SbtImageBuild {
         .from(configuration.baseImageFactory(jibBaseImageCredentialHelper))
         .setLayers(configuration.getLayerConfigurations)
         .setEnvironment(environment.asJava)
+        .setUser(user.orNull)
         .setProgramArguments(args.asJava)
         .setFormat(internalImageFormat)
         .setEntrypoint(configuration.entrypoint(jvmFlags, entrypoint))
