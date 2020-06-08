@@ -38,6 +38,8 @@ object JibPlugin extends AutoPlugin {
     val jibName                        = settingKey[String]("jib image name (defaults to project name)")
     val jibVersion                     = settingKey[String]("jib version (defaults to version)")
     val jibEnvironment                 = settingKey[Map[String, String]]("jib docker env variables")
+    val jibUser =
+      settingKey[Option[String]]("jib user and group to run the container as")
     val jibMappings = taskKey[Seq[(File, String)]](
       "jib additional resource mappings, formatted as <source file resource> -> <full path on container>"
     )
@@ -60,6 +62,7 @@ object JibPlugin extends AutoPlugin {
     jibBaseImage := "registry.hub.docker.com/schmitch/graalvm:latest",
     jibBaseImageCredentialHelper := None,
     jibTargetImageCredentialHelper := None,
+    jibUser := None,
     jibJvmFlags := Nil,
     jibArgs := Nil,
     jibEntrypoint := None,
@@ -122,6 +125,7 @@ object JibPlugin extends AutoPlugin {
       jibArgs.value,
       jibEntrypoint.value,
       jibEnvironment.value,
+      jibUser.value,
       jibUseCurrentTimestamp.value
     ),
     jibImageBuild := SbtImageBuild.task(
@@ -134,6 +138,7 @@ object JibPlugin extends AutoPlugin {
       jibEntrypoint.value,
       jibImageFormat.value,
       jibEnvironment.value,
+      jibUser.value,
       jibUseCurrentTimestamp.value
     ),
     jibTarImageBuild := {
@@ -151,6 +156,7 @@ object JibPlugin extends AutoPlugin {
           jibEntrypoint.value,
           jibImageFormat.value,
           jibEnvironment.value,
+          jibUser.value,
           jibUseCurrentTimestamp.value
         )
       }

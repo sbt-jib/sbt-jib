@@ -23,6 +23,7 @@ private[jib] object SbtDockerBuild {
       args: List[String],
       entryPoint: Option[List[String]],
       environment: Map[String, String],
+      user: Option[String],
       useCurrentTimestamp: Boolean
   ): ImageReference = {
     if (!DockerClient.isDefaultDockerInstalled) {
@@ -41,6 +42,7 @@ private[jib] object SbtDockerBuild {
       Jib
         .from(configuration.baseImageFactory(jibTargetImageCredentialHelper))
         .setLayers(configuration.getLayerConfigurations)
+        .setUser(user.orNull)
         .setEnvironment(environment.asJava)
         .setProgramArguments(args.asJava)
         .setFormat(ImageFormat.Docker)
