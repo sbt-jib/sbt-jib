@@ -38,6 +38,7 @@ object JibPlugin extends AutoPlugin {
     val jibName                        = settingKey[String]("jib image name (defaults to project name)")
     val jibVersion                     = settingKey[String]("jib version (defaults to version)")
     val jibEnvironment                 = settingKey[Map[String, String]]("jib docker env variables")
+    val jibLabels                      = settingKey[Map[String, String]]("jib docker labels")
     val jibUser =
       settingKey[Option[String]]("jib user and group to run the container as")
     val jibMappings = taskKey[Seq[(File, String)]](
@@ -72,6 +73,7 @@ object JibPlugin extends AutoPlugin {
     jibName := name.value,
     jibVersion := version.value,
     jibEnvironment := Map.empty,
+    jibLabels := Map.empty,
     mappings in Jib := Nil,
     mappings in JibExtra := Nil,
     jibMappings := (mappings in Jib).value,
@@ -125,6 +127,7 @@ object JibPlugin extends AutoPlugin {
       jibArgs.value,
       jibEntrypoint.value,
       jibEnvironment.value,
+      jibLabels.value,
       jibUser.value,
       jibUseCurrentTimestamp.value
     ),
@@ -138,6 +141,7 @@ object JibPlugin extends AutoPlugin {
       jibEntrypoint.value,
       jibImageFormat.value,
       jibEnvironment.value,
+      jibLabels.value,
       jibUser.value,
       jibUseCurrentTimestamp.value
     ),
@@ -156,6 +160,7 @@ object JibPlugin extends AutoPlugin {
           jibEntrypoint.value,
           jibImageFormat.value,
           jibEnvironment.value,
+          jibLabels.value,
           jibUser.value,
           jibUseCurrentTimestamp.value
         )

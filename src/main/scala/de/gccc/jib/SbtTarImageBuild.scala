@@ -25,6 +25,7 @@ private[jib] object SbtTarImageBuild {
       entrypoint: Option[List[String]],
       imageFormat: JibImageFormat,
       environment: Map[String, String],
+      labels: Map[String, String],
       user: Option[String],
       useCurrentTimestamp: Boolean
   ): Unit = {
@@ -48,6 +49,7 @@ private[jib] object SbtTarImageBuild {
         .from(configuration.baseImageFactory(jibBaseImageCredentialHelper))
         .setLayers(configuration.getLayerConfigurations)
         .setEnvironment(environment.asJava)
+        .setLabels(labels.asJava)
         .setUser(user.orNull)
         .setProgramArguments(args.asJava)
         .setFormat(internalImageFormat)

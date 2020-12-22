@@ -18,6 +18,7 @@ This project tries to make a sbt plugin for the awesome [jib](https://github.com
 | **jibName**                        | String | jib image name (defaults to project name) |
 | **jibVersion**                     | String | jib version (defaults to version) |
 | **jibEnvironment**                 | Map[String, String] | jib docker env variables |
+| **jibLabels**                      | Map[String, String] | jib docker labels |
 | **jibUser**                        | Option[String] | jib user and group to run the container as |
 | **jibMappings**                    | Seq[(File, String)] | jib additional resource mappings, <br>formatted as \<source file resource\> -> \<full path on container\> |
 | **jibExtraMappings**               | Seq[(File, String)] | jib extra file mappings / i.e. java agents <br>(see above for formatting) |
