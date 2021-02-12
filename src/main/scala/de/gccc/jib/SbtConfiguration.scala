@@ -117,6 +117,10 @@ private[jib] class SbtConfiguration(
 
     val factory = CredentialRetrieverFactory.forImage(imageReference, { case (logEvent: LogEvent) => { /* no-op */ } })
 
+    image.addCredentialRetriever(factory.dockerConfig())
+
+    image.addCredentialRetriever(factory.googleApplicationDefaultCredentials())
+
     image.addCredentialRetriever(factory.wellKnownCredentialHelpers())
 
     credHelper.foreach { helper =>
