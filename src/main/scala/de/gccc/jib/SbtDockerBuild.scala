@@ -23,6 +23,7 @@ private[jib] object SbtDockerBuild {
       args: List[String],
       entryPoint: Option[List[String]],
       environment: Map[String, String],
+      labels: Map[String, String],
       user: Option[String],
       useCurrentTimestamp: Boolean
   ): ImageReference = {
@@ -44,6 +45,7 @@ private[jib] object SbtDockerBuild {
         .setLayers(configuration.getLayerConfigurations)
         .setUser(user.orNull)
         .setEnvironment(environment.asJava)
+        .setLabels(labels.asJava)
         .setProgramArguments(args.asJava)
         .setFormat(ImageFormat.Docker)
         .setEntrypoint(configuration.entrypoint(jvmFlags, entryPoint))
