@@ -1,12 +1,11 @@
 package de.gccc.jib
 
-import java.nio.file.Files
-
-import com.google.cloud.tools.jib.api.{ Containerizer, ImageReference, Jib, TarImage }
+import com.google.cloud.tools.jib.api.{Containerizer, ImageReference, Jib, TarImage}
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
 
+import java.io.File
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
@@ -27,7 +26,8 @@ private[jib] object SbtTarImageBuild {
       environment: Map[String, String],
       labels: Map[String, String],
       user: Option[String],
-      useCurrentTimestamp: Boolean
+      useCurrentTimestamp: Boolean,
+      target: File,
   ): Unit = {
     val internalImageFormat = imageFormat match {
       case JibImageFormat.Docker => ImageFormat.Docker
@@ -42,8 +42,8 @@ private[jib] object SbtTarImageBuild {
       val containerizer = Containerizer
         .to(image)
         .setToolName(USER_AGENT_SUFFIX)
-        .setApplicationLayersCache(Files.createTempDirectory("jib-application-layer-cache"))
-        .setBaseImageLayersCache(Files.createTempDirectory("jib-base-image-layer-cache"))
+        .setApplicationLayersCache(target.toPath.resolve("application-layer-cache"))
+        .setBaseImageLayersCache(target.toPath.resolve("base-image-layer-cache"))
 
       Jib
         .from(configuration.baseImageFactory(jibBaseImageCredentialHelper))

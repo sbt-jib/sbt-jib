@@ -39,6 +39,7 @@ object JibPlugin extends AutoPlugin {
     val jibVersion                     = settingKey[String]("jib version (defaults to version)")
     val jibEnvironment                 = settingKey[Map[String, String]]("jib docker env variables")
     val jibLabels                      = settingKey[Map[String, String]]("jib docker labels")
+    val jibTarget                      = settingKey[File]("""jib target folder (defaults to target.value / "jib"""")
     val jibUser =
       settingKey[Option[String]]("jib user and group to run the container as")
     val jibMappings = taskKey[Seq[(File, String)]](
@@ -80,9 +81,10 @@ object JibPlugin extends AutoPlugin {
     jibExtraMappings := (mappings in JibExtra).value,
     jibUseCurrentTimestamp := false,
     jibCustomRepositoryPath := None,
+    jibTarget := target.value / "jib",
     // private values
     Private.sbtLayerConfiguration := {
-      val stageDirectory     = target.value / "jib" / "stage"
+      val stageDirectory     = target.value / "stage"
       val stageDirectoryPath = stageDirectory.toPath
       if (Files.notExists(stageDirectoryPath)) {
         Files.createDirectories(stageDirectoryPath)
@@ -107,7 +109,7 @@ object JibPlugin extends AutoPlugin {
         Private.sbtLayerConfiguration.value,
         (mainClass in (Compile, packageBin)).value,
         (discoveredMainClasses in (Compile, packageBin)).value,
-        target.value / "jib" / "internal",
+        jibTarget.value / "internal",
         credentials.value,
         baseImage,
         jibRegistry.value,
@@ -129,7 +131,8 @@ object JibPlugin extends AutoPlugin {
       jibEnvironment.value,
       jibLabels.value,
       jibUser.value,
-      jibUseCurrentTimestamp.value
+      jibUseCurrentTimestamp.value,
+      jibTarget.value
     ),
     jibImageBuild := SbtImageBuild.task(
       streams.value.log,
@@ -143,7 +146,8 @@ object JibPlugin extends AutoPlugin {
       jibEnvironment.value,
       jibLabels.value,
       jibUser.value,
-      jibUseCurrentTimestamp.value
+      jibUseCurrentTimestamp.value,
+      jibTarget.value
     ),
     jibTarImageBuild := {
       val args = spaceDelimited("<path>").parsed
@@ -162,7 +166,8 @@ object JibPlugin extends AutoPlugin {
           jibEnvironment.value,
           jibLabels.value,
           jibUser.value,
-          jibUseCurrentTimestamp.value
+          jibUseCurrentTimestamp.value,
+          jibTarget.value
         )
       }
 

@@ -1,11 +1,11 @@
 package de.gccc.jib
 import java.nio.file.Files
-
-import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, Jib, ImageReference }
+import com.google.cloud.tools.jib.api.{Containerizer, DockerDaemonImage, ImageReference, Jib}
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat
 import com.google.cloud.tools.jib.docker.DockerClient
 import sbt.internal.util.ManagedLogger
 
+import java.io.File
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
@@ -25,7 +25,8 @@ private[jib] object SbtDockerBuild {
       environment: Map[String, String],
       labels: Map[String, String],
       user: Option[String],
-      useCurrentTimestamp: Boolean
+      useCurrentTimestamp: Boolean,
+      target: File,
   ): ImageReference = {
     if (!DockerClient.isDefaultDockerInstalled) {
       throw new Exception("Build to Docker daemon failed")
@@ -37,8 +38,8 @@ private[jib] object SbtDockerBuild {
       val containerizer = Containerizer
         .to(targetImage)
         .setToolName(USER_AGENT_SUFFIX)
-        .setApplicationLayersCache(Files.createTempDirectory("jib-application-layer-cache"))
-        .setBaseImageLayersCache(Files.createTempDirectory("jib-base-image-layer-cache"))
+        .setApplicationLayersCache(target.toPath.resolve("application-layer-cache"))
+        .setBaseImageLayersCache(target.toPath.resolve("base-image-layer-cache"))
 
       Jib
         .from(configuration.baseImageFactory(jibTargetImageCredentialHelper))
