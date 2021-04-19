@@ -93,6 +93,7 @@ object JibPlugin extends AutoPlugin {
         target.value,
         (Compile / products).value,
         (Compile / resourceDirectories).value,
+        (Compile / resources).value,
         (Compile / internalDependencyAsJars).value,
         (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value,
         jibExtraMappings.value,
