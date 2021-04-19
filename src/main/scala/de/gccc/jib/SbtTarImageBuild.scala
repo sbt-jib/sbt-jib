@@ -47,7 +47,7 @@ private[jib] object SbtTarImageBuild {
 
       Jib
         .from(configuration.baseImageFactory(jibBaseImageCredentialHelper))
-        .setLayers(configuration.getLayerConfigurations)
+        .setFileEntriesLayers(configuration.getLayerConfigurations)
         .setEnvironment(environment.asJava)
         .setLabels(labels.asJava)
         .setUser(user.orNull)

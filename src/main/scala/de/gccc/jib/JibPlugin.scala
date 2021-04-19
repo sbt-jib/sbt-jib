@@ -1,9 +1,8 @@
 package de.gccc.jib
 
 import java.nio.file.Files
-
-import com.google.cloud.tools.jib.api.LayerConfiguration
 import com.google.cloud.tools.jib.api.ImageReference
+import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer
 import sbt._
 import sbt.Keys._
 import complete.DefaultParsers._
@@ -51,7 +50,7 @@ object JibPlugin extends AutoPlugin {
     val jibCustomRepositoryPath = settingKey[Option[String]]("jib custom repository path freeform path structure")
 
     private[jib] object Private {
-      val sbtLayerConfiguration = taskKey[List[LayerConfiguration]]("jib layer configuration")
+      val sbtLayerConfiguration = taskKey[List[FileEntriesLayer]]("jib layer configuration")
       val sbtConfiguration      = taskKey[SbtConfiguration]("jib sbt configuration")
     }
   }

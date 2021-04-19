@@ -1,28 +1,28 @@
 package de.gccc.jib
 
 import java.io.File
-import java.nio.file.{ Files, Path }
+import java.nio.file.{Files, Path}
 
 import com.google.cloud.tools.jib.api.{
   Credential,
   ImageReference,
-  LayerConfiguration,
   LogEvent,
   RegistryImage
 }
 import com.google.cloud.tools.jib.api.buildplan.{
-  AbsoluteUnixPath
+  AbsoluteUnixPath,
+  FileEntriesLayer
 }
 import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory
 import com.google.common.collect.ImmutableList
-import sbt.librarymanagement.ivy.{ Credentials, DirectCredentials }
+import sbt.librarymanagement.ivy.{Credentials, DirectCredentials}
 import sbt.util.Logger
 
 import scala.collection.JavaConverters._
 
 private[jib] class SbtConfiguration(
     logger: Logger,
-    layerConfigurations: List[LayerConfiguration],
+    layerConfigurations: List[FileEntriesLayer],
     mainClass: Option[String],
     discoveredMainClasses: Seq[String],
     targetValue: File,
@@ -55,8 +55,8 @@ private[jib] class SbtConfiguration(
 
   def getPluginName: String = PLUGIN_NAME
 
-  def getLayerConfigurations: ImmutableList[LayerConfiguration] = {
-    ImmutableList.copyOf[LayerConfiguration](layerConfigurations.asJavaCollection)
+  def getLayerConfigurations: ImmutableList[FileEntriesLayer] = {
+    ImmutableList.copyOf[FileEntriesLayer](layerConfigurations.asJavaCollection)
   }
 
   def getCacheDirectory: Path = {
