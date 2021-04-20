@@ -10,6 +10,7 @@ object SbtLayerConfigurations {
       targetDirectory: File,
       classes: Seq[File],
       resourceDirectories: Seq[File],
+      resources: Seq[File],
       internalDependencies: Keys.Classpath,
       external: Keys.Classpath,
       extraMappings: Seq[(File, String)],
@@ -26,7 +27,7 @@ object SbtLayerConfigurations {
     val resourcesLayer = {
       SbtJibHelper.mappingsConverter(
         "conf",
-        resourceDirectories.flatMap(MappingsHelper.contentOf(_, "/app/resources", _.isFile))
+        resourceDirectories.flatMap(MappingsHelper.contentOf(_, "/app/resources", f => f.isFile && resources.contains(f)))
       )
     }
 
