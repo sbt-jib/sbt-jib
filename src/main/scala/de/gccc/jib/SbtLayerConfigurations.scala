@@ -1,8 +1,7 @@
 package de.gccc.jib
 
 import java.io.File
-
-import com.google.cloud.tools.jib.api.LayerConfiguration
+import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer
 import sbt._
 
 object SbtLayerConfigurations {
@@ -15,7 +14,7 @@ object SbtLayerConfigurations {
       external: Keys.Classpath,
       extraMappings: Seq[(File, String)],
       specialResourceDirectory: File
-  ): List[LayerConfiguration] = {
+  ): List[FileEntriesLayer] = {
 
     val internalDependenciesLayer = {
       SbtJibHelper.mappingsConverter("internal", reproducibleDependencies(targetDirectory, internalDependencies))
@@ -54,7 +53,7 @@ object SbtLayerConfigurations {
       internalDependenciesLayer,
       specialResourcesLayer,
       classesLayer
-    )).filterNot(lc => lc.getLayerEntries.isEmpty)
+    )).filterNot(lc => lc.getEntries.isEmpty)
   }
 
   private def reproducibleDependencies(targetDirectory: File, internalDependencies: Keys.Classpath) = {

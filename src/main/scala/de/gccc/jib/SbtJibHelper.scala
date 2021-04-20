@@ -1,14 +1,13 @@
 package de.gccc.jib
 
 import java.io.File
-
-import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath
+import com.google.cloud.tools.jib.api.buildplan.{AbsoluteUnixPath, FileEntriesLayer}
 import com.google.cloud.tools.jib.api.LayerConfiguration
 
 private[jib] object SbtJibHelper {
 
-  def mappingsConverter(name: String, mappings: Seq[(File, String)]): LayerConfiguration = {
-    val layerConfiguration = LayerConfiguration.builder()
+  def mappingsConverter(name: String, mappings: Seq[(File, String)]): FileEntriesLayer = {
+    val layerBuilder = FileEntriesLayer.builder()
 
     mappings
       .filter(_._1.isFile) // fixme resolve all directory files
@@ -17,10 +16,10 @@ private[jib] object SbtJibHelper {
       .sortBy(_._2)
       .foreach {
         case (sourceFile, pathOnImage) =>
-          layerConfiguration.addEntry(sourceFile, AbsoluteUnixPath.get(pathOnImage))
+          layerBuilder.addEntry(sourceFile, AbsoluteUnixPath.get(pathOnImage))
       }
 
-    layerConfiguration.build()
+    layerBuilder.build()
   }
 
 }

@@ -42,7 +42,7 @@ private[jib] object SbtDockerBuild {
 
       Jib
         .from(configuration.baseImageFactory(jibTargetImageCredentialHelper))
-        .setLayers(configuration.getLayerConfigurations)
+        .setFileEntriesLayers(configuration.getLayerConfigurations)
         .setUser(user.orNull)
         .setEnvironment(environment.asJava)
         .setLabels(labels.asJava)
