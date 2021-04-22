@@ -24,6 +24,12 @@ developers := List(
   )
 )
 
+inThisBuild(
+  Seq(
+    Compile / Keys.compile / javacOptions ++= Seq("--release", "8")
+  )
+)
+
 lazy val root = (project in file("."))
   .settings(
     name := "sbt-jib",
