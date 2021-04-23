@@ -26,7 +26,8 @@ developers := List(
 
 inThisBuild(
   Seq(
-    Compile / Keys.compile / javacOptions ++= Seq("--release", "8")
+    Compile / scalacOptions ++= Seq("-target:jvm-1.8"),
+    Compile / Keys.compile / javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
   )
 )
 
