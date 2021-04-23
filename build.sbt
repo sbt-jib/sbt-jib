@@ -24,6 +24,13 @@ developers := List(
   )
 )
 
+inThisBuild(
+  Seq(
+    Compile / scalacOptions ++= Seq("-target:jvm-1.8"),
+    Compile / Keys.compile / javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
+  )
+)
+
 lazy val root = (project in file("."))
   .settings(
     name := "sbt-jib",
