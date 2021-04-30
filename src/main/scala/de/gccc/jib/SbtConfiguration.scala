@@ -117,18 +117,19 @@ private[jib] class SbtConfiguration(
 
     val factory = CredentialRetrieverFactory.forImage(imageReference, { case (logEvent: LogEvent) => { /* no-op */ } })
 
-    image.addCredentialRetriever(factory.dockerConfig())
+    credentials match {
+      case Some(credential) =>
+        image.addCredential(credential.getUsername, credential.getPassword)
+      case None =>
+        image.addCredentialRetriever(factory.dockerConfig())
 
-    image.addCredentialRetriever(factory.googleApplicationDefaultCredentials())
+        image.addCredentialRetriever(factory.googleApplicationDefaultCredentials())
 
-    image.addCredentialRetriever(factory.wellKnownCredentialHelpers())
+        image.addCredentialRetriever(factory.wellKnownCredentialHelpers())
 
-    credHelper.foreach { helper =>
-      image.addCredentialRetriever(factory.dockerCredentialHelper(helper))
-    }
-
-    credentials.foreach { credential =>
-      image.addCredential(credential.getUsername, credential.getPassword)
+        credHelper.foreach { helper =>
+          image.addCredentialRetriever(factory.dockerCredentialHelper(helper))
+        }
     }
 
     image
