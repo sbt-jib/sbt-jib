@@ -122,10 +122,9 @@ private[jib] class SbtConfiguration(
         image.addCredential(credential.getUsername, credential.getPassword)
       case None =>
         image.addCredentialRetriever(factory.dockerConfig())
-
+        image.addCredentialRetriever(factory.wellKnownCredentialHelpers())
         image.addCredentialRetriever(factory.googleApplicationDefaultCredentials())
 
-        image.addCredentialRetriever(factory.wellKnownCredentialHelpers())
 
         credHelper.foreach { helper =>
           image.addCredentialRetriever(factory.dockerCredentialHelper(helper))
