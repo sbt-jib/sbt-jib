@@ -1,23 +1,15 @@
 package de.gccc.jib
 
-import java.io.File
-import java.nio.file.{Files, Path}
-
-import com.google.cloud.tools.jib.api.{
-  Credential,
-  ImageReference,
-  LogEvent,
-  RegistryImage
-}
-import com.google.cloud.tools.jib.api.buildplan.{
-  AbsoluteUnixPath,
-  FileEntriesLayer
-}
+import com.google.cloud.tools.jib.api.buildplan.{AbsoluteUnixPath, FileEntriesLayer}
+import com.google.cloud.tools.jib.api.{Credential, CredentialRetriever, ImageReference, LogEvent, RegistryImage}
 import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory
 import com.google.common.collect.ImmutableList
-import sbt.librarymanagement.ivy.{Credentials, DirectCredentials}
+import sbt.librarymanagement.ivy.Credentials
 import sbt.util.Logger
 
+import java.io.File
+import java.nio.file.{Files, Path}
+import java.util.Optional
 import scala.collection.JavaConverters._
 
 private[jib] class SbtConfiguration(
@@ -36,19 +28,6 @@ private[jib] class SbtConfiguration(
 ) {
 
   val repository: String = customRepositoryPath.getOrElse(organization + "/" + name)
-
-  private def generateCredentials(sbtCreds: Option[DirectCredentials], usernameEnv: String, passwdEnv: String) = {
-    sbtCreds.orElse {
-      val usernameOption = sys.env.get(usernameEnv)
-      val passwordOption = sys.env.get(passwdEnv)
-      for {
-        username <- usernameOption
-        password <- passwordOption
-      } yield new DirectCredentials("", "", username, password)
-    }.map { sbtCredentials =>
-      Credential.from(sbtCredentials.userName, sbtCredentials.passwd)
-    }
-  }
 
   private val PLUGIN_NAME     = "jib-sbt-plugin"
   private val JAR_PLUGIN_NAME = "'sbt-jar-plugin'"
@@ -72,22 +51,6 @@ private[jib] class SbtConfiguration(
   lazy val targetImageReference: ImageReference =
     ImageReference.of(registry, repository, version)
 
-  lazy val baseImageCredentials: Option[Credential] = {
-    generateCredentials(
-      Credentials.forHost(credentials, baseImageReference.getRegistry),
-      "JIB_BASE_IMAGE_USERNAME",
-      "JIB_BASE_IMAGE_PASSWORD"
-    )
-  }
-
-  lazy val targetImageCredentials: Option[Credential] = {
-    generateCredentials(
-      Credentials.forHost(credentials, targetImageReference.getRegistry),
-      "JIB_TARGET_IMAGE_USERNAME",
-      "JIB_TARGET_IMAGE_PASSWORD"
-    )
-  }
-
   def entrypoint(jvmFlags: List[String], entrypoint: Option[List[String]]): java.util.List[String] = {
     entrypoint match {
       case Some(list) => list.asJava
@@ -110,36 +73,51 @@ private[jib] class SbtConfiguration(
   }
 
   private def imageFactory(imageReference: ImageReference,
-                           credentials: Option[Credential],
+                           credentialsEnv: (String, String),
                            credHelper: Option[String]) = {
 
     val image = RegistryImage.named(imageReference)
 
     val factory = CredentialRetrieverFactory.forImage(imageReference, { case (logEvent: LogEvent) => { /* no-op */ } })
 
-    credentials match {
-      case Some(credential) =>
-        image.addCredential(credential.getUsername, credential.getPassword)
-      case None =>
-        image.addCredentialRetriever(factory.dockerConfig())
-        image.addCredentialRetriever(factory.wellKnownCredentialHelpers())
-        image.addCredentialRetriever(factory.googleApplicationDefaultCredentials())
+    val (usernameEnv, passwordEnv) = credentialsEnv
 
+    image.addCredentialRetriever(retrieveEnvCredentials(usernameEnv, passwordEnv))
+    image.addCredentialRetriever(retrieveSbtCredentials(imageReference))
+    image.addCredentialRetriever(factory.dockerConfig())
+    image.addCredentialRetriever(factory.wellKnownCredentialHelpers())
+    image.addCredentialRetriever(factory.googleApplicationDefaultCredentials())
 
-        credHelper.foreach { helper =>
-          image.addCredentialRetriever(factory.dockerCredentialHelper(helper))
-        }
+    credHelper.foreach { helper =>
+      image.addCredentialRetriever(factory.dockerCredentialHelper(helper))
     }
 
     image
   }
 
+  private def retrieveEnvCredentials(usernameEnv: String, passwordEnv: String): CredentialRetriever = {
+    () => {
+      val option = for {
+        username <- sys.env.get(usernameEnv)
+        password <- sys.env.get(passwordEnv)
+      } yield Credential.from(username, password)
+
+      Optional.ofNullable(option.orNull)
+    }
+  }
+
+  private def retrieveSbtCredentials(imageReference: ImageReference): CredentialRetriever = {
+    () => {
+      val option = Credentials.forHost(credentials, imageReference.getRegistry).map(c => Credential.from(c.userName, c.passwd))
+      Optional.ofNullable(option.orNull)
+    }
+  }
+
   def baseImageFactory(jibBaseImageCredentialHelper: Option[String]): RegistryImage = {
-    imageFactory(baseImageReference, baseImageCredentials, jibBaseImageCredentialHelper)
+    imageFactory(baseImageReference, ("JIB_BASE_IMAGE_USERNAME", "JIB_BASE_IMAGE_PASSWORD"), jibBaseImageCredentialHelper)
   }
 
   def targetImageFactory(jibTargetImageCredentialHelper: Option[String]): RegistryImage = {
-    imageFactory(targetImageReference, targetImageCredentials, jibTargetImageCredentialHelper)
+    imageFactory(targetImageReference, ("JIB_TARGET_IMAGE_USERNAME", "JIB_TARGET_IMAGE_PASSWORD"), jibTargetImageCredentialHelper)
   }
-
 }
