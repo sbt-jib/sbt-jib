@@ -5,7 +5,8 @@ This project tries to make a sbt plugin for the awesome [jib](https://github.com
 ## settings
     
 | name | type | description |
-| ---                            | --- | --- |
+| ---                                | --- | --- |
+| **jibTarget**                      | Option[File] | jib work directory |
 | **jibBaseImage**                   | String | jib base image |
 | **jibBaseImageCredentialHelper**   | Option[String]] | jib base image credential helper cli name (e.g. ecr-login) |
 | **jibJvmFlags**                    | List[String]] | jib default jvm flags |
@@ -32,6 +33,16 @@ This project tries to make a sbt plugin for the awesome [jib](https://github.com
 | **jibDockerBuild**     | jib build docker image |
 | **jibImageBuild**      | jib build image (does not need docker) |
 | **jibTarImageBuild**   | jib build tar image |
+
+## credentials
+
+There are a couple of ways to supply credentials to the image pull and push operations done by jib. The following sources are tested in order:
+
+1. Environment variables: `JIB_BASE_IMAGE_USERNAME` + `JIB_BASE_IMAGE_PASSWORD` for pulling the base image, `JIB_TARGET_IMAGE_USERNAME` + `JIB_TARGET_IMAGE_PASSWORD` for pushing the target image
+2. SBT credentials: The plugin looks for a `credentials` entry that matches the host of the image registry
+3. The `$HOME/.docker/config.json` for credentials and credential helpers
+4. A set of [well known credential helpers](https://github.com/GoogleContainerTools/jib/blob/v0.18.0-core/jib-core/src/main/java/com/google/cloud/tools/jib/frontend/CredentialRetrieverFactory.java#L69)
+5. The credential helpers supplied by `jibBaseImageCredentialHelper` or `jibTargetImageCredentialHelper`
 
 ## snippets and examples
 
