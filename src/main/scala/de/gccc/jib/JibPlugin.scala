@@ -38,7 +38,9 @@ object JibPlugin extends AutoPlugin {
     val jibVersion                     = settingKey[String]("jib version (defaults to version)")
     val jibEnvironment                 = settingKey[Map[String, String]]("jib docker env variables")
     val jibLabels                      = settingKey[Map[String, String]]("jib docker labels")
-    val jibTarget                      = settingKey[File]("""jib target folder (defaults to target.value / "jib"""")
+    val jibTarget                      = settingKey[File]("""jib target folder (defaults to target.value / "jib")""")
+    val jibAllowInsecureRegistries     = settingKey[Boolean]("""allow pushing to insecure registries""")
+    val jibSendCredentialsOverHttp     = settingKey[Boolean]("""allow sending credentials over unencrypted HTTP""")
     val jibUser =
       settingKey[Option[String]]("jib user and group to run the container as")
     val jibMappings = taskKey[Seq[(File, String)]](
@@ -81,6 +83,8 @@ object JibPlugin extends AutoPlugin {
     jibUseCurrentTimestamp := false,
     jibCustomRepositoryPath := None,
     jibTarget := target.value / "jib",
+    jibAllowInsecureRegistries := false,
+    jibSendCredentialsOverHttp := false,
     // private values
     Private.sbtLayerConfiguration := {
       val stageDirectory     = target.value / "stage"
@@ -116,15 +120,16 @@ object JibPlugin extends AutoPlugin {
         jibOrganization.value,
         jibName.value,
         jibVersion.value,
-        jibCustomRepositoryPath.value
+        jibCustomRepositoryPath.value,
+        jibAllowInsecureRegistries.value,
+        jibSendCredentialsOverHttp.value,
+        jibTarget.value,
       )
     },
     jibDockerBuild := SbtDockerBuild.task(
       streams.value.log,
       Private.sbtConfiguration.value,
       jibBaseImageCredentialHelper.value,
-      jibTargetImageCredentialHelper.value,
-      jibBaseImage.value,
       jibJvmFlags.value,
       jibArgs.value,
       jibEntrypoint.value,
@@ -132,7 +137,6 @@ object JibPlugin extends AutoPlugin {
       jibLabels.value,
       jibUser.value,
       jibUseCurrentTimestamp.value,
-      jibTarget.value
     ),
     jibImageBuild := SbtImageBuild.task(
       streams.value.log,
@@ -147,7 +151,6 @@ object JibPlugin extends AutoPlugin {
       jibLabels.value,
       jibUser.value,
       jibUseCurrentTimestamp.value,
-      jibTarget.value
     ),
     jibTarImageBuild := {
       val args = spaceDelimited("<path>").parsed
@@ -158,7 +161,6 @@ object JibPlugin extends AutoPlugin {
           streams.value.log,
           Private.sbtConfiguration.value,
           jibBaseImageCredentialHelper.value,
-          jibTargetImageCredentialHelper.value,
           jibJvmFlags.value,
           jibArgs.value,
           jibEntrypoint.value,
@@ -167,7 +169,6 @@ object JibPlugin extends AutoPlugin {
           jibLabels.value,
           jibUser.value,
           jibUseCurrentTimestamp.value,
-          jibTarget.value
         )
       }
 

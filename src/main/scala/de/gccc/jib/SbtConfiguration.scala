@@ -1,8 +1,9 @@
 package de.gccc.jib
 
 import com.google.cloud.tools.jib.api.buildplan.{AbsoluteUnixPath, FileEntriesLayer}
-import com.google.cloud.tools.jib.api.{Credential, CredentialRetriever, ImageReference, LogEvent, RegistryImage}
+import com.google.cloud.tools.jib.api.{Containerizer, Credential, CredentialRetriever, ImageReference, LogEvent, RegistryImage}
 import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory
+import com.google.cloud.tools.jib.global.JibSystemProperties
 import com.google.common.collect.ImmutableList
 import sbt.librarymanagement.ivy.Credentials
 import sbt.util.Logger
@@ -24,8 +25,16 @@ private[jib] class SbtConfiguration(
     val organization: String,
     val name: String,
     val version: String,
-    customRepositoryPath: Option[String]
+    customRepositoryPath: Option[String],
+    val allowInsecureRegistries: Boolean,
+    sendCredentialsOverHttp: Boolean,
+    val target: File,
 ) {
+
+  private val USER_AGENT_SUFFIX = "jib-sbt-plugin"
+
+  // See: https://github.com/GoogleContainerTools/jib/blob/v0.19.0-core/jib-cli/src/main/java/com/google/cloud/tools/jib/cli/Containerizers.java#L98-L102
+  System.setProperty(JibSystemProperties.SEND_CREDENTIALS_OVER_HTTP, sendCredentialsOverHttp.toString)
 
   val repository: String = customRepositoryPath.getOrElse(organization + "/" + name)
 
@@ -120,4 +129,10 @@ private[jib] class SbtConfiguration(
   def targetImageFactory(jibTargetImageCredentialHelper: Option[String]): RegistryImage = {
     imageFactory(targetImageReference, ("JIB_TARGET_IMAGE_USERNAME", "JIB_TARGET_IMAGE_PASSWORD"), jibTargetImageCredentialHelper)
   }
+
+  def configureContainerizer(containerizer: Containerizer): Containerizer = containerizer
+    .setAllowInsecureRegistries(allowInsecureRegistries)
+    .setToolName(USER_AGENT_SUFFIX)
+    .setApplicationLayersCache(target.toPath.resolve("application-layer-cache"))
+    .setBaseImageLayersCache(target.toPath.resolve("base-image-layer-cache"))
 }
