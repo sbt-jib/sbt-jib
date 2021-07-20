@@ -18,7 +18,6 @@ private[jib] object SbtTarImageBuild {
       logger: ManagedLogger,
       configuration: SbtConfiguration,
       jibBaseImageCredentialHelper: Option[String],
-      jibTargetImageCredentialHelper: Option[String],
       jvmFlags: List[String],
       args: List[String],
       entrypoint: Option[List[String]],
@@ -27,7 +26,6 @@ private[jib] object SbtTarImageBuild {
       labels: Map[String, String],
       user: Option[String],
       useCurrentTimestamp: Boolean,
-      target: File,
   ): Unit = {
     val internalImageFormat = imageFormat match {
       case JibImageFormat.Docker => ImageFormat.Docker
@@ -37,13 +35,7 @@ private[jib] object SbtTarImageBuild {
     try {
       val imageReference = ImageReference.of(configuration.registry, configuration.repository, configuration.version)
 
-      val image = TarImage.at(home.toPath).named(imageReference)
-
-      val containerizer = Containerizer
-        .to(image)
-        .setToolName(USER_AGENT_SUFFIX)
-        .setApplicationLayersCache(target.toPath.resolve("application-layer-cache"))
-        .setBaseImageLayersCache(target.toPath.resolve("base-image-layer-cache"))
+      val targetImage = TarImage.at(home.toPath).named(imageReference)
 
       Jib
         .from(configuration.baseImageFactory(jibBaseImageCredentialHelper))
@@ -55,7 +47,7 @@ private[jib] object SbtTarImageBuild {
         .setFormat(internalImageFormat)
         .setEntrypoint(configuration.entrypoint(jvmFlags, entrypoint))
         .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
-        .containerize(containerizer)
+        .containerize(configuration.configureContainerizer(Containerizer.to(targetImage)))
 
       logger.success("image successfully created & uploaded")
     } catch {
