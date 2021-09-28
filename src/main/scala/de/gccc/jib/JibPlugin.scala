@@ -38,6 +38,7 @@ object JibPlugin extends AutoPlugin {
     val jibVersion                     = settingKey[String]("jib version (defaults to version)")
     val jibEnvironment                 = settingKey[Map[String, String]]("jib docker env variables")
     val jibLabels                      = settingKey[Map[String, String]]("jib docker labels")
+    val jibTags                        = settingKey[List[String]]("jib image tags (in addition to jibVersion)")
     val jibTarget                      = settingKey[File]("""jib target folder (defaults to target.value / "jib")""")
     val jibAllowInsecureRegistries     = settingKey[Boolean]("""allow pushing to insecure registries""")
     val jibSendCredentialsOverHttp     = settingKey[Boolean]("""allow sending credentials over unencrypted HTTP""")
@@ -76,6 +77,7 @@ object JibPlugin extends AutoPlugin {
     jibVersion := version.value,
     jibEnvironment := Map.empty,
     jibLabels := Map.empty,
+    jibTags := List.empty,
     mappings in Jib := Nil,
     mappings in JibExtra := Nil,
     jibMappings := (mappings in Jib).value,
@@ -135,6 +137,7 @@ object JibPlugin extends AutoPlugin {
       jibEntrypoint.value,
       jibEnvironment.value,
       jibLabels.value,
+      jibTags.value,
       jibUser.value,
       jibUseCurrentTimestamp.value,
     ),
@@ -149,6 +152,7 @@ object JibPlugin extends AutoPlugin {
       jibImageFormat.value,
       jibEnvironment.value,
       jibLabels.value,
+      jibTags.value,
       jibUser.value,
       jibUseCurrentTimestamp.value,
     ),
@@ -167,6 +171,7 @@ object JibPlugin extends AutoPlugin {
           jibImageFormat.value,
           jibEnvironment.value,
           jibLabels.value,
+          jibTags.value,
           jibUser.value,
           jibUseCurrentTimestamp.value,
         )

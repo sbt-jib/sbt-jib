@@ -1,6 +1,6 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.api.{Containerizer, ImageReference, Jib}
+import com.google.cloud.tools.jib.api.{ Containerizer, ImageReference, Jib }
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
@@ -21,6 +21,7 @@ private[jib] object SbtImageBuild {
       imageFormat: JibImageFormat,
       environment: Map[String, String],
       labels: Map[String, String],
+      additionalTags: List[String],
       user: Option[String],
       useCurrentTimestamp: Boolean,
   ): ImageReference = {
@@ -32,6 +33,8 @@ private[jib] object SbtImageBuild {
 
     try {
       val targetImage = configuration.targetImageFactory(jibTargetImageCredentialHelper)
+      val taggedImage =
+        additionalTags.foldRight(Containerizer.to(targetImage))((tag, image) => image.withAdditionalTag(tag))
 
       Jib
         .from(configuration.baseImageFactory(jibBaseImageCredentialHelper))
@@ -43,7 +46,7 @@ private[jib] object SbtImageBuild {
         .setFormat(internalImageFormat)
         .setEntrypoint(configuration.entrypoint(jvmFlags, entrypoint))
         .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
-        .containerize(configuration.configureContainerizer(Containerizer.to(targetImage)))
+        .containerize(configuration.configureContainerizer(taggedImage))
 
       logger.success("image successfully created & uploaded")
       configuration.targetImageReference
