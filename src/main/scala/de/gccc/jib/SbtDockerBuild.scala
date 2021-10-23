@@ -1,5 +1,5 @@
 package de.gccc.jib
-import com.google.cloud.tools.jib.api.{Containerizer, DockerDaemonImage, ImageReference, Jib}
+import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, ImageReference, Jib }
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat
 import com.google.cloud.tools.jib.docker.DockerClient
 import sbt.internal.util.ManagedLogger
@@ -18,6 +18,7 @@ private[jib] object SbtDockerBuild {
       entryPoint: Option[List[String]],
       environment: Map[String, String],
       labels: Map[String, String],
+      additionalTags: List[String],
       user: Option[String],
       useCurrentTimestamp: Boolean,
   ): ImageReference = {
@@ -27,6 +28,8 @@ private[jib] object SbtDockerBuild {
 
     try {
       val targetImage = DockerDaemonImage.named(configuration.targetImageReference)
+      val taggedImage =
+        additionalTags.foldRight(Containerizer.to(targetImage))((tag, image) => image.withAdditionalTag(tag))
 
       Jib
         .from(configuration.baseImageFactory(jibBaseImageCredentialHelper))
@@ -38,7 +41,7 @@ private[jib] object SbtDockerBuild {
         .setFormat(ImageFormat.Docker)
         .setEntrypoint(configuration.entrypoint(jvmFlags, entryPoint))
         .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
-        .containerize(configuration.configureContainerizer(Containerizer.to(targetImage)))
+        .containerize(configuration.configureContainerizer(taggedImage))
 
       logger.success("image successfully created & uploaded")
       return configuration.targetImageReference
