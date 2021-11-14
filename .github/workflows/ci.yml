@@ -22,7 +22,5 @@ jobs:
       with:
         java-version: ${{ matrix.java }}
         distribution: 'zulu'
-    - name: print Java version
-      run: java -version
     - name: Run tests
       run:  sbt ++${{ matrix.scala }} "^ test"
