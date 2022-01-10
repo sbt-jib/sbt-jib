@@ -2,7 +2,7 @@ package de.gccc.jib
 
 import java.nio.file.Files
 import com.google.cloud.tools.jib.api.ImageReference
-import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer
+import com.google.cloud.tools.jib.api.buildplan. { FileEntriesLayer, Platform }
 import sbt._
 import sbt.Keys._
 import complete.DefaultParsers._
@@ -37,6 +37,7 @@ object JibPlugin extends AutoPlugin {
     val jibName                        = settingKey[String]("jib image name (defaults to project name)")
     val jibVersion                     = settingKey[String]("jib version (defaults to version)")
     val jibEnvironment                 = settingKey[Map[String, String]]("jib docker env variables")
+    val jibPlatforms                   = settingKey[Set[Platform]]("jib platforms to build for")
     val jibLabels                      = settingKey[Map[String, String]]("jib docker labels")
     val jibTags                        = settingKey[List[String]]("jib image tags (in addition to jibVersion)")
     val jibTarget                      = settingKey[File]("""jib target folder (defaults to target.value / "jib")""")
@@ -76,6 +77,7 @@ object JibPlugin extends AutoPlugin {
     jibName := name.value,
     jibVersion := version.value,
     jibEnvironment := Map.empty,
+    jibPlatforms := Set(new Platform("amd64", "linux")),
     jibLabels := Map.empty,
     jibTags := List.empty,
     mappings in Jib := Nil,
@@ -140,6 +142,7 @@ object JibPlugin extends AutoPlugin {
       jibTags.value,
       jibUser.value,
       jibUseCurrentTimestamp.value,
+      jibPlatforms.value
     ),
     jibImageBuild := SbtImageBuild.task(
       streams.value.log,
@@ -155,6 +158,7 @@ object JibPlugin extends AutoPlugin {
       jibTags.value,
       jibUser.value,
       jibUseCurrentTimestamp.value,
+      jibPlatforms.value
     ),
     jibTarImageBuild := {
       val args = spaceDelimited("<path>").parsed

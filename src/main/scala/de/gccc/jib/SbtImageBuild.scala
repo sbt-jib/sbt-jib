@@ -1,7 +1,7 @@
 package de.gccc.jib
 
 import com.google.cloud.tools.jib.api.{ Containerizer, ImageReference, Jib }
-import com.google.cloud.tools.jib.api.buildplan.ImageFormat
+import com.google.cloud.tools.jib.api.buildplan.{ ImageFormat, Platform }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
 
@@ -24,6 +24,7 @@ private[jib] object SbtImageBuild {
       additionalTags: List[String],
       user: Option[String],
       useCurrentTimestamp: Boolean,
+      platforms: Set[Platform]
   ): ImageReference = {
 
     val internalImageFormat = imageFormat match {
@@ -40,6 +41,7 @@ private[jib] object SbtImageBuild {
         .from(configuration.baseImageFactory(jibBaseImageCredentialHelper))
         .setFileEntriesLayers(configuration.getLayerConfigurations)
         .setEnvironment(environment.asJava)
+        .setPlatforms(platforms.asJava)
         .setLabels(labels.asJava)
         .setUser(user.orNull)
         .setProgramArguments(args.asJava)

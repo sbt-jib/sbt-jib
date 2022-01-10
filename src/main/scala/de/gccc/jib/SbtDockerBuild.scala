@@ -1,6 +1,6 @@
 package de.gccc.jib
 import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, ImageReference, Jib }
-import com.google.cloud.tools.jib.api.buildplan.ImageFormat
+import com.google.cloud.tools.jib.api.buildplan.{ ImageFormat, Platform }
 import com.google.cloud.tools.jib.docker.DockerClient
 import sbt.internal.util.ManagedLogger
 
@@ -21,6 +21,7 @@ private[jib] object SbtDockerBuild {
       additionalTags: List[String],
       user: Option[String],
       useCurrentTimestamp: Boolean,
+      platforms: Set[Platform]
   ): ImageReference = {
     if (!DockerClient.isDefaultDockerInstalled) {
       throw new Exception("Build to Docker daemon failed")
@@ -36,6 +37,7 @@ private[jib] object SbtDockerBuild {
         .setFileEntriesLayers(configuration.getLayerConfigurations)
         .setUser(user.orNull)
         .setEnvironment(environment.asJava)
+        .setPlatforms(platforms.asJava)
         .setLabels(labels.asJava)
         .setProgramArguments(args.asJava)
         .setFormat(ImageFormat.Docker)
