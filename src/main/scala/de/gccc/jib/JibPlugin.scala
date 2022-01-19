@@ -15,6 +15,11 @@ object JibPlugin extends AutoPlugin {
     val Jib: Configuration      = config("jib")
     val JibExtra: Configuration = config("jib-extra-files")
 
+    object JibPlatforms {
+      val arm64 = new Platform("arm64", "linux")
+      val amd64 = new Platform("amd64", "linux")
+    }
+
     sealed trait JibImageFormat
     object JibImageFormat {
       case object Docker extends JibImageFormat
@@ -77,7 +82,7 @@ object JibPlugin extends AutoPlugin {
     jibName := name.value,
     jibVersion := version.value,
     jibEnvironment := Map.empty,
-    jibPlatforms := Set(new Platform("amd64", "linux")),
+    jibPlatforms := Set(JibPlatforms.amd64),
     jibLabels := Map.empty,
     jibTags := List.empty,
     mappings in Jib := Nil,
