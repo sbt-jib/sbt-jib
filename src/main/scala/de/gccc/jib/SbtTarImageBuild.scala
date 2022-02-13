@@ -1,6 +1,6 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.api.{ Containerizer, ImageReference, Jib, TarImage }
+import com.google.cloud.tools.jib.api.{Containerizer, ImageReference, Jib, TarImage}
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
@@ -10,10 +10,8 @@ import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 private[jib] object SbtTarImageBuild {
-
-  private val USER_AGENT_SUFFIX = "jib-sbt-plugin"
-
   def task(
+      targetDirectory: File,
       home: sbt.File,
       logger: ManagedLogger,
       configuration: SbtConfiguration,
@@ -40,7 +38,7 @@ private[jib] object SbtTarImageBuild {
       val taggedImage =
         additionalTags.foldRight(Containerizer.to(targetImage))((tag, image) => image.withAdditionalTag(tag))
 
-      Jib
+      val container = Jib
         .from(configuration.baseImageFactory(jibBaseImageCredentialHelper))
         .setFileEntriesLayers(configuration.getLayerConfigurations)
         .setEnvironment(environment.asJava)
@@ -51,6 +49,8 @@ private[jib] object SbtTarImageBuild {
         .setEntrypoint(configuration.entrypoint(jvmFlags, entrypoint))
         .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
         .containerize(configuration.configureContainerizer(taggedImage))
+
+      SbtJibHelper.writeJibOutputFiles(targetDirectory, container)
 
       logger.success("image successfully created & uploaded")
     } catch {
