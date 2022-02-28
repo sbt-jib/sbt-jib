@@ -2,7 +2,7 @@ package de.gccc.jib
 
 import java.nio.file.Files
 import com.google.cloud.tools.jib.api.ImageReference
-import com.google.cloud.tools.jib.api.buildplan. { FileEntriesLayer, Platform }
+import com.google.cloud.tools.jib.api.buildplan.{FileEntriesLayer, Platform}
 import sbt._
 import sbt.Keys._
 import complete.DefaultParsers._
@@ -85,10 +85,10 @@ object JibPlugin extends AutoPlugin {
     jibPlatforms := Set(JibPlatforms.amd64),
     jibLabels := Map.empty,
     jibTags := List.empty,
-    mappings in Jib := Nil,
-    mappings in JibExtra := Nil,
-    jibMappings := (mappings in Jib).value,
-    jibExtraMappings := (mappings in JibExtra).value,
+    Jib / mappings := Nil,
+    JibExtra / mappings := Nil,
+    jibMappings := (Jib / mappings).value,
+    jibExtraMappings := (JibExtra / mappings).value,
     jibUseCurrentTimestamp := false,
     jibCustomRepositoryPath := None,
     jibTarget := target.value / "jib",
@@ -109,7 +109,7 @@ object JibPlugin extends AutoPlugin {
         (Compile / resourceDirectories).value,
         (Compile / resources).value,
         (Compile / internalDependencyAsJars).value,
-        (externalDependencyClasspath or (externalDependencyClasspath in Runtime)).value,
+        (externalDependencyClasspath or (Runtime / externalDependencyClasspath)).value,
         jibExtraMappings.value,
         staged
       )
@@ -120,8 +120,8 @@ object JibPlugin extends AutoPlugin {
       new SbtConfiguration(
         sLog.value,
         Private.sbtLayerConfiguration.value,
-        (mainClass in (Compile, packageBin)).value,
-        (discoveredMainClasses in (Compile, packageBin)).value,
+        (Compile / packageBin / mainClass).value,
+        (Compile / packageBin / discoveredMainClasses).value,
         jibTarget.value / "internal",
         credentials.value,
         baseImage,
@@ -136,6 +136,7 @@ object JibPlugin extends AutoPlugin {
       )
     },
     jibDockerBuild := SbtDockerBuild.task(
+      target.value,
       streams.value.log,
       Private.sbtConfiguration.value,
       jibBaseImageCredentialHelper.value,
@@ -150,6 +151,7 @@ object JibPlugin extends AutoPlugin {
       jibPlatforms.value
     ),
     jibImageBuild := SbtImageBuild.task(
+      target.value,
       streams.value.log,
       Private.sbtConfiguration.value,
       jibBaseImageCredentialHelper.value,
@@ -166,32 +168,30 @@ object JibPlugin extends AutoPlugin {
       jibPlatforms.value
     ),
     jibTarImageBuild := {
-      val args = spaceDelimited("<path>").parsed
-      args.headOption.foreach { pathString =>
-        val file = new File(pathString)
-        SbtTarImageBuild.task(
-          file,
-          streams.value.log,
-          Private.sbtConfiguration.value,
-          jibBaseImageCredentialHelper.value,
-          jibJvmFlags.value,
-          jibArgs.value,
-          jibEntrypoint.value,
-          jibImageFormat.value,
-          jibEnvironment.value,
-          jibLabels.value,
-          jibTags.value,
-          jibUser.value,
-          jibUseCurrentTimestamp.value,
-        )
-      }
-
-      if (args.headOption.isEmpty) {
-        streams.value.log.error("could not create jib tar image, cause path is not set")
+      spaceDelimited("<path>").parsed.headOption match {
+        case Some(pathString) =>
+          SbtTarImageBuild.task(
+            target.value,
+            new File(pathString),
+            streams.value.log,
+            Private.sbtConfiguration.value,
+            jibBaseImageCredentialHelper.value,
+            jibJvmFlags.value,
+            jibArgs.value,
+            jibEntrypoint.value,
+            jibImageFormat.value,
+            jibEnvironment.value,
+            jibLabels.value,
+            jibTags.value,
+            jibUser.value,
+            jibUseCurrentTimestamp.value,
+          )
+        case None =>
+          streams.value.log.error("could not create jib tar image, cause path is not set")
       }
     },
-    jibDockerBuild := jibDockerBuild.dependsOn(compile in Compile).value,
-    jibImageBuild := jibImageBuild.dependsOn(compile in Compile).value,
+    jibDockerBuild := jibDockerBuild.dependsOn(Compile / compile).value,
+    jibImageBuild := jibImageBuild.dependsOn(Compile / compile).value,
   )
 
 }
