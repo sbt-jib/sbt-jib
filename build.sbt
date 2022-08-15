@@ -26,6 +26,6 @@ inThisBuild(
 lazy val root = (project in file("."))
   .settings(
     name := "sbt-jib",
-    libraryDependencies += "com.google.cloud.tools" % "jib-core" % "0.20.0",
+    libraryDependencies += "com.google.cloud.tools" % "jib-core" % "0.21.0",
   )
   .enablePlugins(SbtPlugin)
