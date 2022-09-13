@@ -1,6 +1,7 @@
 package de.gccc.jib
-import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, ImageReference, Jib }
-import com.google.cloud.tools.jib.api.buildplan.{ ImageFormat, Platform }
+
+import com.google.cloud.tools.jib.api.{Containerizer, DockerDaemonImage, ImageReference, Jib}
+import com.google.cloud.tools.jib.api.buildplan.{ImageFormat, Platform, Port}
 import com.google.cloud.tools.jib.docker.DockerClient
 import sbt.internal.util.ManagedLogger
 
@@ -16,6 +17,7 @@ private[jib] object SbtDockerBuild {
       configuration: SbtConfiguration,
       jibBaseImageCredentialHelper: Option[String],
       jvmFlags: List[String],
+      ports: List[Int],
       args: List[String],
       entryPoint: Option[List[String]],
       environment: Map[String, String],
@@ -44,6 +46,7 @@ private[jib] object SbtDockerBuild {
         .setProgramArguments(args.asJava)
         .setFormat(ImageFormat.Docker)
         .setEntrypoint(configuration.entrypoint(jvmFlags, entryPoint))
+        .setExposedPorts(ports.toSet.map(s =>  Port.tcp(s)).asJava)
         .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
         .containerize(configuration.configureContainerizer(taggedImage))
 

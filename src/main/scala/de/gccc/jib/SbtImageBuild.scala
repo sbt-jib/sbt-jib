@@ -1,7 +1,8 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.api.{ Containerizer, ImageReference, Jib }
-import com.google.cloud.tools.jib.api.buildplan.{ ImageFormat, Platform }
+
+import com.google.cloud.tools.jib.api.{Containerizer, ImageReference, Jib}
+import com.google.cloud.tools.jib.api.buildplan.{ImageFormat, Platform, Port}
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
 
@@ -18,6 +19,7 @@ private[jib] object SbtImageBuild {
       jibBaseImageCredentialHelper: Option[String],
       jibTargetImageCredentialHelper: Option[String],
       jvmFlags: List[String],
+      ports: List[Int],
       args: List[String],
       entrypoint: Option[List[String]],
       imageFormat: JibImageFormat,
@@ -49,6 +51,7 @@ private[jib] object SbtImageBuild {
         .setProgramArguments(args.asJava)
         .setFormat(internalImageFormat)
         .setEntrypoint(configuration.entrypoint(jvmFlags, entrypoint))
+        .setExposedPorts(ports.toSet.map(s =>  Port.tcp(s)).asJava)
         .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
         .containerize(configuration.configureContainerizer(taggedImage))
 
