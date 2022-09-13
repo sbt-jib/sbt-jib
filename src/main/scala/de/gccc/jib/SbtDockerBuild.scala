@@ -17,7 +17,8 @@ private[jib] object SbtDockerBuild {
       configuration: SbtConfiguration,
       jibBaseImageCredentialHelper: Option[String],
       jvmFlags: List[String],
-      ports: List[Int],
+      tcpPorts: List[Int],
+      udpPorts: List[Int],
       args: List[String],
       entryPoint: Option[List[String]],
       environment: Map[String, String],
@@ -46,7 +47,7 @@ private[jib] object SbtDockerBuild {
         .setProgramArguments(args.asJava)
         .setFormat(ImageFormat.Docker)
         .setEntrypoint(configuration.entrypoint(jvmFlags, entryPoint))
-        .setExposedPorts(ports.toSet.map(s =>  Port.tcp(s)).asJava)
+        .setExposedPorts((tcpPorts.toSet.map(s =>  Port.tcp(s)) ++ (udpPorts.toSet.map(s =>  Port.udp(s)))).asJava)
         .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
         .containerize(configuration.configureContainerizer(taggedImage))
 

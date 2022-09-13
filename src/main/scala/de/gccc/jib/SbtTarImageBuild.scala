@@ -17,7 +17,8 @@ private[jib] object SbtTarImageBuild {
       configuration: SbtConfiguration,
       jibBaseImageCredentialHelper: Option[String],
       jvmFlags: List[String],
-      ports: List[Int],
+      tcpPorts: List[Int],
+      udpPorts: List[Int],
       args: List[String],
       entrypoint: Option[List[String]],
       imageFormat: JibImageFormat,
@@ -48,7 +49,7 @@ private[jib] object SbtTarImageBuild {
         .setProgramArguments(args.asJava)
         .setFormat(internalImageFormat)
         .setEntrypoint(configuration.entrypoint(jvmFlags, entrypoint))
-        .setExposedPorts(ports.toSet.map(s =>  Port.tcp(s)).asJava)
+        .setExposedPorts((tcpPorts.toSet.map(s =>  Port.tcp(s)) ++ udpPorts.toSet.map(s =>  Port.udp(s)) ).asJava)
         .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
         .containerize(configuration.configureContainerizer(taggedImage))
 
