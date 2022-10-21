@@ -1,7 +1,7 @@
 package de.gccc.jib
 
 import java.io.File
-import com.google.cloud.tools.jib.api.buildplan.{AbsoluteUnixPath, FileEntriesLayer}
+import com.google.cloud.tools.jib.api.buildplan.{ AbsoluteUnixPath, FileEntriesLayer }
 import com.google.cloud.tools.jib.api.JibContainer
 
 import java.nio.charset.StandardCharsets.UTF_8
@@ -18,9 +18,8 @@ private[jib] object SbtJibHelper {
       .map { case (file, fullPathOnImage) => (file.toPath, fullPathOnImage) }
       .toList
       .sortBy(_._2)
-      .foreach {
-        case (sourceFile, pathOnImage) =>
-          layerBuilder.addEntry(sourceFile, AbsoluteUnixPath.get(pathOnImage))
+      .foreach { case (sourceFile, pathOnImage) =>
+        layerBuilder.addEntry(sourceFile, AbsoluteUnixPath.get(pathOnImage))
       }
 
     layerBuilder.build()

@@ -27,13 +27,17 @@ object SbtLayerConfigurations {
     val resourcesLayer = {
       SbtJibHelper.mappingsConverter(
         "conf",
-        resourceDirectories.flatMap(MappingsHelper.contentOf(_, "/app/resources", f => f.isFile && resources.contains(f)))
+        resourceDirectories.flatMap(
+          MappingsHelper.contentOf(_, "/app/resources", f => f.isFile && resources.contains(f))
+        )
       )
     }
 
     val specialResourcesLayer = {
-      SbtJibHelper.mappingsConverter("resources",
-                                     MappingsHelper.contentOf(specialResourceDirectory, "/app/resources", _.isFile))
+      SbtJibHelper.mappingsConverter(
+        "resources",
+        MappingsHelper.contentOf(specialResourceDirectory, "/app/resources", _.isFile)
+      )
     }
 
     val extraLayer =
@@ -41,8 +45,8 @@ object SbtLayerConfigurations {
       else Nil
 
     val allClasses = classes
-    // we only want class-files in our classes layer
-    // FIXME: not just extensions checking?
+      // we only want class-files in our classes layer
+      // FIXME: not just extensions checking?
       .flatMap(MappingsHelper.contentOf(_, "/app/classes", f => if (f.isFile) f.getName.endsWith(".class") else false))
 
     val classesLayer = SbtJibHelper.mappingsConverter("classes", allClasses)

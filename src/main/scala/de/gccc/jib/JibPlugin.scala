@@ -2,7 +2,7 @@ package de.gccc.jib
 
 import java.nio.file.Files
 import com.google.cloud.tools.jib.api.ImageReference
-import com.google.cloud.tools.jib.api.buildplan.{FileEntriesLayer, Platform}
+import com.google.cloud.tools.jib.api.buildplan.{ FileEntriesLayer, Platform }
 import sbt._
 import sbt.Keys._
 import complete.DefaultParsers._
@@ -69,31 +69,31 @@ object JibPlugin extends AutoPlugin {
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
     // public values
-    jibBaseImage := "registry.hub.docker.com/schmitch/graalvm:latest",
-    jibBaseImageCredentialHelper := None,
+    jibBaseImage                   := "registry.hub.docker.com/schmitch/graalvm:latest",
+    jibBaseImageCredentialHelper   := None,
     jibTargetImageCredentialHelper := None,
-    jibUser := None,
-    jibJvmFlags := Nil,
-    jibArgs := Nil,
-    jibEntrypoint := None,
-    jibImageFormat := JibImageFormat.Docker,
-    jibRegistry := "registry.hub.docker.com",
-    jibOrganization := organization.value,
-    jibName := name.value,
-    jibVersion := version.value,
-    jibEnvironment := Map.empty,
-    jibPlatforms := Set(JibPlatforms.amd64),
-    jibLabels := Map.empty,
-    jibTags := List.empty,
-    Jib / mappings := Nil,
-    JibExtra / mappings := Nil,
-    jibMappings := (Jib / mappings).value,
-    jibExtraMappings := (JibExtra / mappings).value,
-    jibUseCurrentTimestamp := false,
-    jibCustomRepositoryPath := None,
-    jibTarget := target.value / "jib",
-    jibAllowInsecureRegistries := false,
-    jibSendCredentialsOverHttp := false,
+    jibUser                        := None,
+    jibJvmFlags                    := Nil,
+    jibArgs                        := Nil,
+    jibEntrypoint                  := None,
+    jibImageFormat                 := JibImageFormat.Docker,
+    jibRegistry                    := "registry.hub.docker.com",
+    jibOrganization                := organization.value,
+    jibName                        := name.value,
+    jibVersion                     := version.value,
+    jibEnvironment                 := Map.empty,
+    jibPlatforms                   := Set(JibPlatforms.amd64),
+    jibLabels                      := Map.empty,
+    jibTags                        := List.empty,
+    Jib / mappings                 := Nil,
+    JibExtra / mappings            := Nil,
+    jibMappings                    := (Jib / mappings).value,
+    jibExtraMappings               := (JibExtra / mappings).value,
+    jibUseCurrentTimestamp         := false,
+    jibCustomRepositoryPath        := None,
+    jibTarget                      := target.value / "jib",
+    jibAllowInsecureRegistries     := false,
+    jibSendCredentialsOverHttp     := false,
     // private values
     Private.sbtLayerConfiguration := {
       val stageDirectory     = target.value / "stage"
@@ -132,8 +132,9 @@ object JibPlugin extends AutoPlugin {
         jibCustomRepositoryPath.value,
         jibAllowInsecureRegistries.value,
         jibSendCredentialsOverHttp.value,
-        jibTarget.value,
+        jibTarget.value
       )
+
     },
     jibDockerBuild := SbtDockerBuild.task(
       target.value,
@@ -184,14 +185,14 @@ object JibPlugin extends AutoPlugin {
             jibLabels.value,
             jibTags.value,
             jibUser.value,
-            jibUseCurrentTimestamp.value,
+            jibUseCurrentTimestamp.value
           )
         case None =>
           streams.value.log.error("could not create jib tar image, cause path is not set")
       }
     },
     jibDockerBuild := jibDockerBuild.dependsOn(Compile / compile).value,
-    jibImageBuild := jibImageBuild.dependsOn(Compile / compile).value,
+    jibImageBuild  := jibImageBuild.dependsOn(Compile / compile).value
   )
 
 }
