@@ -22,7 +22,7 @@ import scala.collection.JavaConverters._
 
 private[jib] class SbtConfiguration(
     logger: Logger,
-    layerConfigurations: List[FileEntriesLayer],
+    val layerConfigurations: SbtLayerConfigurations,
     mainClass: Option[String],
     discoveredMainClasses: Seq[String],
     targetValue: File,
@@ -51,7 +51,7 @@ private[jib] class SbtConfiguration(
   def getPluginName: String = PLUGIN_NAME
 
   def getLayerConfigurations: ImmutableList[FileEntriesLayer] = {
-    ImmutableList.copyOf[FileEntriesLayer](layerConfigurations.asJavaCollection)
+    ImmutableList.copyOf[FileEntriesLayer](layerConfigurations.generate.asJavaCollection)
   }
 
   def getCacheDirectory: Path = {
@@ -67,23 +67,24 @@ private[jib] class SbtConfiguration(
   lazy val targetImageReference: ImageReference =
     ImageReference.of(registry, repository, version)
 
+  lazy val pickedMainClass: String = mainClass.getOrElse {
+    discoveredMainClasses.toList match {
+      case one :: Nil => one
+      case first :: _ =>
+        logger.warn(
+          s"using first discovered main class for entrypoint ($first) this may not be what you want. Use the mainClass setting to specify the one you want."
+        )
+        first
+      case Nil =>
+        sys.error("no main class found for container image entrypoint")
+    }
+  }
+
   def entrypoint(jvmFlags: List[String], entrypoint: Option[List[String]]): java.util.List[String] = {
     entrypoint match {
       case Some(list) => list.asJava
       case None =>
         val appRoot = AbsoluteUnixPath.get("/app")
-        val pickedMainClass = mainClass.getOrElse {
-          discoveredMainClasses.toList match {
-            case one :: Nil => one
-            case first :: _ =>
-              logger.warn(
-                s"using first discovered main class for entrypoint ($first) this may not be what you want. Use the mainClass setting to specify the one you want."
-              )
-              first
-            case Nil =>
-              sys.error("no main class found for container image entrypoint")
-          }
-        }
         JavaEntrypointConstructor.makeDefaultEntrypoint(appRoot, jvmFlags.asJava, pickedMainClass)
     }
   }

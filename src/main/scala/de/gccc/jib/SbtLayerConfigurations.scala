@@ -4,18 +4,17 @@ import java.io.File
 import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer
 import sbt._
 
-object SbtLayerConfigurations {
-
-  def generate(
-      targetDirectory: File,
-      classes: Seq[File],
-      resourceDirectories: Seq[File],
-      resources: Seq[File],
-      internalDependencies: Keys.Classpath,
-      external: Keys.Classpath,
-      extraMappings: Seq[(File, String)],
-      specialResourceDirectory: File
-  ): List[FileEntriesLayer] = {
+private[jib] case class SbtLayerConfigurations(
+    targetDirectory: File,
+    classes: Seq[File],
+    resourceDirectories: Seq[File],
+    resources: Seq[File],
+    internalDependencies: Keys.Classpath,
+    external: Keys.Classpath,
+    extraMappings: Seq[(File, String)],
+    specialResourceDirectory: File
+) {
+  lazy val generate: List[FileEntriesLayer] = {
 
     val internalDependenciesLayer = {
       SbtJibHelper.mappingsConverter("internal", reproducibleDependencies(targetDirectory, internalDependencies))

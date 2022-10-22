@@ -35,6 +35,9 @@ This project tries to make a sbt plugin for the awesome [jib](https://github.com
 | **jibDockerBuild**     | jib build docker image |
 | **jibImageBuild**      | jib build image (does not need docker) |
 | **jibTarImageBuild**   | jib build tar image |
+| **jibJavaDockerBuild**   | jib build docker image, uses JavaContainerBuilder from jib-core |
+| **jibJavaImageBuild**    | jib build image (does not need docker), uses JavaContainerBuilder from jib-core |
+| **jibJavaTarImageBuild** | jib build tar image, uses JavaContainerBuilder from jib-core |
 
 ## credentials
 
