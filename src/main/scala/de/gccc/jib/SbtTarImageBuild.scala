@@ -1,6 +1,6 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.api.{Containerizer, ImageReference, Jib, TarImage}
+import com.google.cloud.tools.jib.api.{ Containerizer, ImageReference, Jib, TarImage }
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
@@ -24,7 +24,7 @@ private[jib] object SbtTarImageBuild {
       labels: Map[String, String],
       additionalTags: List[String],
       user: Option[String],
-      useCurrentTimestamp: Boolean,
+      useCurrentTimestamp: Boolean
   ): Unit = {
     val internalImageFormat = imageFormat match {
       case JibImageFormat.Docker => ImageFormat.Docker

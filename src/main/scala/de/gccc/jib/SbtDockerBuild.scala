@@ -1,6 +1,6 @@
 package de.gccc.jib
-import com.google.cloud.tools.jib.api.{Containerizer, DockerDaemonImage, ImageReference, Jib}
-import com.google.cloud.tools.jib.api.buildplan.{ImageFormat, Platform}
+import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, ImageReference, Jib }
+import com.google.cloud.tools.jib.api.buildplan.{ ImageFormat, Platform }
 import com.google.cloud.tools.jib.docker.DockerClient
 import sbt.internal.util.ManagedLogger
 

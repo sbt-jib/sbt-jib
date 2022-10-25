@@ -1,7 +1,14 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.api.buildplan.{AbsoluteUnixPath, FileEntriesLayer}
-import com.google.cloud.tools.jib.api.{Containerizer, Credential, CredentialRetriever, ImageReference, LogEvent, RegistryImage}
+import com.google.cloud.tools.jib.api.buildplan.{ AbsoluteUnixPath, FileEntriesLayer }
+import com.google.cloud.tools.jib.api.{
+  Containerizer,
+  Credential,
+  CredentialRetriever,
+  ImageReference,
+  LogEvent,
+  RegistryImage
+}
 import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory
 import com.google.cloud.tools.jib.global.JibSystemProperties
 import com.google.common.collect.ImmutableList
@@ -9,7 +16,7 @@ import sbt.librarymanagement.ivy.Credentials
 import sbt.util.Logger
 
 import java.io.File
-import java.nio.file.{Files, Path}
+import java.nio.file.{ Files, Path }
 import java.util.Optional
 import scala.collection.JavaConverters._
 
@@ -28,7 +35,7 @@ private[jib] class SbtConfiguration(
     customRepositoryPath: Option[String],
     val allowInsecureRegistries: Boolean,
     sendCredentialsOverHttp: Boolean,
-    val target: File,
+    val target: File
 ) {
 
   private val USER_AGENT_SUFFIX = "jib-sbt-plugin"
@@ -81,9 +88,11 @@ private[jib] class SbtConfiguration(
     }
   }
 
-  private def imageFactory(imageReference: ImageReference,
-                           credentialsEnv: (String, String),
-                           credHelper: Option[String]) = {
+  private def imageFactory(
+      imageReference: ImageReference,
+      credentialsEnv: (String, String),
+      credHelper: Option[String]
+  ) = {
 
     val image = RegistryImage.named(imageReference)
 
@@ -104,8 +113,8 @@ private[jib] class SbtConfiguration(
     image
   }
 
-  private def retrieveEnvCredentials(usernameEnv: String, passwordEnv: String): CredentialRetriever = {
-    () => {
+  private def retrieveEnvCredentials(usernameEnv: String, passwordEnv: String): CredentialRetriever = { () =>
+    {
       val option = for {
         username <- sys.env.get(usernameEnv)
         password <- sys.env.get(passwordEnv)
@@ -115,19 +124,28 @@ private[jib] class SbtConfiguration(
     }
   }
 
-  private def retrieveSbtCredentials(imageReference: ImageReference): CredentialRetriever = {
-    () => {
-      val option = Credentials.forHost(credentials, imageReference.getRegistry).map(c => Credential.from(c.userName, c.passwd))
+  private def retrieveSbtCredentials(imageReference: ImageReference): CredentialRetriever = { () =>
+    {
+      val option =
+        Credentials.forHost(credentials, imageReference.getRegistry).map(c => Credential.from(c.userName, c.passwd))
       Optional.ofNullable(option.orNull)
     }
   }
 
   def baseImageFactory(jibBaseImageCredentialHelper: Option[String]): RegistryImage = {
-    imageFactory(baseImageReference, ("JIB_BASE_IMAGE_USERNAME", "JIB_BASE_IMAGE_PASSWORD"), jibBaseImageCredentialHelper)
+    imageFactory(
+      baseImageReference,
+      ("JIB_BASE_IMAGE_USERNAME", "JIB_BASE_IMAGE_PASSWORD"),
+      jibBaseImageCredentialHelper
+    )
   }
 
   def targetImageFactory(jibTargetImageCredentialHelper: Option[String]): RegistryImage = {
-    imageFactory(targetImageReference, ("JIB_TARGET_IMAGE_USERNAME", "JIB_TARGET_IMAGE_PASSWORD"), jibTargetImageCredentialHelper)
+    imageFactory(
+      targetImageReference,
+      ("JIB_TARGET_IMAGE_USERNAME", "JIB_TARGET_IMAGE_PASSWORD"),
+      jibTargetImageCredentialHelper
+    )
   }
 
   def configureContainerizer(containerizer: Containerizer): Containerizer = containerizer

@@ -28,6 +28,8 @@ jobs:
         with:
           java-version: ${{ matrix.java.version }}
       - uses: coursier/cache-action@v6
+      - name: Scalafmt
+        run: sbt scalafmtCheckAll scalafmtSbtCheck
       - name: Test
         run: sbt test
   publish:
