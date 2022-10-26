@@ -39,7 +39,8 @@ private[jib] object SbtJavaDockerBuild {
           configuration.baseImageFactory(jibBaseImageCredentialHelper),
           configuration.layerConfigurations,
           configuration.pickedMainClass,
-          jvmFlags
+          jvmFlags,
+          logger
         )
         .setEnvironment(environment.asJava)
         .setPlatforms(platforms.asJava)

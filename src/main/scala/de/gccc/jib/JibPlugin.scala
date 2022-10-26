@@ -115,7 +115,8 @@ object JibPlugin extends AutoPlugin {
         (Compile / internalDependencyAsJars).value,
         (externalDependencyClasspath or (Runtime / externalDependencyClasspath)).value,
         jibExtraMappings.value,
-        staged
+        staged,
+        jibMappings.value
       )
     },
     Private.sbtConfiguration := {

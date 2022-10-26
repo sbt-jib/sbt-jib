@@ -12,7 +12,8 @@ private[jib] case class SbtLayerConfigurations(
     internalDependencies: Keys.Classpath,
     external: Keys.Classpath,
     extraMappings: Seq[(File, String)],
-    specialResourceDirectory: File
+    specialResourceDirectory: File,
+    mappings: Seq[(File, String)]
 ) {
   lazy val generate: List[FileEntriesLayer] = {
 

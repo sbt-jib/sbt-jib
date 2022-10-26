@@ -42,7 +42,8 @@ private[jib] object SbtJavaTarImageBuild {
           configuration.baseImageFactory(jibBaseImageCredentialHelper),
           configuration.layerConfigurations,
           configuration.pickedMainClass,
-          jvmFlags
+          jvmFlags,
+          logger
         )
         .setEnvironment(environment.asJava)
         .setLabels(labels.asJava)
