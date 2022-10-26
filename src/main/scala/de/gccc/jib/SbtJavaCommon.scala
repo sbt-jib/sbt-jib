@@ -15,14 +15,12 @@ private[jib] object SbtJavaCommon {
       add: java.util.List[Path] => Any,
       mappings: Seq[(File, String)],
       logger: ManagedLogger
-  ): Unit = {
-    add(
-      mappings.map { case (file, ignored) =>
-        logger.warn(s"The file `$file` won't be mapped to `$ignored` in the container, but directly to `$file`.")
-        file.toPath
-      }.asJava
-    )
-  }
+  ): Unit = add(
+    mappings.map { case (file, ignored) =>
+      logger.warn(s"The file `$file` won't be mapped to `$ignored` in the container, but directly to `$file`.")
+      file.toPath
+    }.asJava
+  )
 
   def makeJibContainerBuilder(
       baseImage: RegistryImage,
