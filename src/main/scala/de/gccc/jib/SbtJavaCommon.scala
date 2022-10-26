@@ -6,6 +6,9 @@ import java.nio.file.Path
 import scala.jdk.CollectionConverters._
 
 private[jib] object SbtJavaCommon {
+
+  private def isSnapshotDependency(path: Path) = path.toString.endsWith("-SNAPSHOT.jar")
+
   def makeJibContainerBuilder(
       baseImage: RegistryImage,
       layerConfigurations: SbtLayerConfigurations,
@@ -14,10 +17,10 @@ private[jib] object SbtJavaCommon {
   ): JibContainerBuilder = {
     val builder = JavaContainerBuilder.from(baseImage)
     builder.addDependencies(
-      layerConfigurations.external.map(_.data.toPath).filterNot(_.endsWith("-SNAPSHOT")).asJava
+      layerConfigurations.external.map(_.data.toPath).filterNot(isSnapshotDependency).asJava
     )
     builder.addSnapshotDependencies(
-      layerConfigurations.external.map(_.data.toPath).filter(_.endsWith("-SNAPSHOT")).asJava
+      layerConfigurations.external.map(_.data.toPath).filter(isSnapshotDependency).asJava
     )
     builder.addToClasspath(
       layerConfigurations.extraMappings.map { case (file, _) => file.toPath }.asJava
