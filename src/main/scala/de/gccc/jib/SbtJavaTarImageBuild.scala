@@ -1,7 +1,7 @@
 package de.gccc.jib
 
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat
-import com.google.cloud.tools.jib.api.{ Containerizer, ImageReference, TarImage }
+import com.google.cloud.tools.jib.api.{ Containerizer, ImageReference, JavaContainerBuilder, TarImage }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
 
@@ -37,14 +37,14 @@ private[jib] object SbtJavaTarImageBuild {
       val taggedImage =
         additionalTags.foldRight(Containerizer.to(targetImage))((tag, image) => image.withAdditionalTag(tag))
 
-      val container = SbtJavaCommon
-        .makeJibContainerBuilder(
-          configuration.baseImageFactory(jibBaseImageCredentialHelper),
-          configuration.layerConfigurations,
-          configuration.pickedMainClass,
-          jvmFlags,
-          logger
-        )
+      val container = new SbtJavaCommon(
+        JavaContainerBuilder.from(configuration.baseImageFactory(jibBaseImageCredentialHelper)),
+        logger
+      ).prepareJavaContainerBuilder(
+        configuration.layerConfigurations,
+        configuration.pickedMainClass,
+        jvmFlags
+      ).toContainerBuilder
         .setEnvironment(environment.asJava)
         .setLabels(labels.asJava)
         .setUser(user.orNull)

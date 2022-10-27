@@ -1,7 +1,7 @@
 package de.gccc.jib
 
 import com.google.cloud.tools.jib.api.buildplan.{ ImageFormat, Platform }
-import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, ImageReference }
+import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, ImageReference, JavaContainerBuilder }
 import com.google.cloud.tools.jib.docker.CliDockerClient
 import sbt.internal.util.ManagedLogger
 
@@ -34,14 +34,14 @@ private[jib] object SbtJavaDockerBuild {
       val taggedImage =
         additionalTags.foldRight(Containerizer.to(targetImage))((tag, image) => image.withAdditionalTag(tag))
 
-      val container = SbtJavaCommon
-        .makeJibContainerBuilder(
-          configuration.baseImageFactory(jibBaseImageCredentialHelper),
-          configuration.layerConfigurations,
-          configuration.pickedMainClass,
-          jvmFlags,
-          logger
-        )
+      val container = new SbtJavaCommon(
+        JavaContainerBuilder.from(configuration.baseImageFactory(jibBaseImageCredentialHelper)),
+        logger
+      ).prepareJavaContainerBuilder(
+        configuration.layerConfigurations,
+        configuration.pickedMainClass,
+        jvmFlags
+      ).toContainerBuilder
         .setEnvironment(environment.asJava)
         .setPlatforms(platforms.asJava)
         .setLabels(labels.asJava)
