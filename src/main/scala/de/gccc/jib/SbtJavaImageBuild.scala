@@ -1,12 +1,11 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.api.buildplan.{ ImageFormat, Platform }
-import com.google.cloud.tools.jib.api.{ Containerizer, ImageReference, JavaContainerBuilder }
+import com.google.cloud.tools.jib.api.buildplan._
+import com.google.cloud.tools.jib.api._
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
 
 import java.io.File
-import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 private[jib] object SbtJavaImageBuild {
@@ -18,6 +17,8 @@ private[jib] object SbtJavaImageBuild {
       jibBaseImageCredentialHelper: Option[String],
       jibTargetImageCredentialHelper: Option[String],
       jvmFlags: List[String],
+      tcpPorts: List[Int],
+      udpPorts: List[Int],
       args: List[String],
       imageFormat: JibImageFormat,
       environment: Map[String, String],
@@ -38,21 +39,28 @@ private[jib] object SbtJavaImageBuild {
       val taggedImage =
         additionalTags.foldRight(Containerizer.to(targetImage))((tag, image) => image.withAdditionalTag(tag))
 
-      val container = new SbtJavaCommon(
-        JavaContainerBuilder.from(configuration.baseImageFactory(jibBaseImageCredentialHelper)),
-        logger
-      ).prepareJavaContainerBuilder(
-        configuration.layerConfigurations,
-        configuration.pickedMainClass,
-        jvmFlags
-      ).toContainerBuilder
-        .setEnvironment(environment.asJava)
-        .setPlatforms(platforms.asJava)
-        .setLabels(labels.asJava)
-        .setUser(user.orNull)
-        .setProgramArguments(args.asJava)
-        .setFormat(internalImageFormat)
-        .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
+      val sbtJavaCommon = new SbtJavaCommon(logger)
+      val builder = sbtJavaCommon
+        .prepareJavaContainerBuilder(
+          JavaContainerBuilder.from(configuration.baseImageFactory(jibBaseImageCredentialHelper)),
+          configuration.layerConfigurations,
+          configuration.pickedMainClass,
+          jvmFlags
+        )
+        .toContainerBuilder
+      val container = sbtJavaCommon
+        .prepareJibContainerBuilder(
+          builder,
+          tcpPorts,
+          udpPorts,
+          args,
+          internalImageFormat,
+          environment,
+          labels,
+          user,
+          useCurrentTimestamp,
+          platforms
+        )
         .containerize(configuration.configureContainerizer(taggedImage))
 
       SbtJibHelper.writeJibOutputFiles(targetDirectory, container)

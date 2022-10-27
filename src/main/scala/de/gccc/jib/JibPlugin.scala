@@ -212,6 +212,8 @@ object JibPlugin extends AutoPlugin {
       Private.sbtConfiguration.value,
       jibBaseImageCredentialHelper.value,
       jibJvmFlags.value,
+      jibTcpPorts.value,
+      jibUdpPorts.value,
       jibArgs.value,
       jibEnvironment.value,
       jibLabels.value,
@@ -227,6 +229,8 @@ object JibPlugin extends AutoPlugin {
       jibBaseImageCredentialHelper.value,
       jibTargetImageCredentialHelper.value,
       jibJvmFlags.value,
+      jibTcpPorts.value,
+      jibUdpPorts.value,
       jibArgs.value,
       jibImageFormat.value,
       jibEnvironment.value,
@@ -246,13 +250,16 @@ object JibPlugin extends AutoPlugin {
             Private.sbtConfiguration.value,
             jibBaseImageCredentialHelper.value,
             jibJvmFlags.value,
+            jibTcpPorts.value,
+            jibUdpPorts.value,
             jibArgs.value,
             jibImageFormat.value,
             jibEnvironment.value,
             jibLabels.value,
             jibTags.value,
             jibUser.value,
-            jibUseCurrentTimestamp.value
+            jibUseCurrentTimestamp.value,
+            jibPlatforms.value
           )
         case None =>
           streams.value.log.error("could not create jib java tar image, cause path is not set")
