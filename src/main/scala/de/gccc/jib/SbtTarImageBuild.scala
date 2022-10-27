@@ -1,7 +1,7 @@
 package de.gccc.jib
 
 import com.google.cloud.tools.jib.api.{ Containerizer, ImageReference, Jib, TarImage }
-import com.google.cloud.tools.jib.api.buildplan.ImageFormat
+import com.google.cloud.tools.jib.api.buildplan.{ ImageFormat, Port }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
 
@@ -17,6 +17,8 @@ private[jib] object SbtTarImageBuild {
       configuration: SbtConfiguration,
       jibBaseImageCredentialHelper: Option[String],
       jvmFlags: List[String],
+      tcpPorts: List[Int],
+      udpPorts: List[Int],
       args: List[String],
       entrypoint: Option[List[String]],
       imageFormat: JibImageFormat,
@@ -47,6 +49,7 @@ private[jib] object SbtTarImageBuild {
         .setProgramArguments(args.asJava)
         .setFormat(internalImageFormat)
         .setEntrypoint(configuration.entrypoint(jvmFlags, entrypoint))
+        .setExposedPorts((tcpPorts.toSet.map(s => Port.tcp(s)) ++ udpPorts.toSet.map(s => Port.udp(s))).asJava)
         .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
         .containerize(configuration.configureContainerizer(taggedImage))
 
