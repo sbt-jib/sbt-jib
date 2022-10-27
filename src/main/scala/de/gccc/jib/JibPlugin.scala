@@ -30,6 +30,8 @@ object JibPlugin extends AutoPlugin {
     val jibBaseImageCredentialHelper =
       settingKey[Option[String]]("jib base image credential helper cli name (e.g. ecr-login)")
     val jibJvmFlags        = settingKey[List[String]]("jib default jvm flags")
+    val jibTcpPorts        = settingKey[List[Int]]("jib default Tcp ports")
+    val jibUdpPorts        = settingKey[List[Int]]("jib default Udp ports")
     val jibArgs            = settingKey[List[String]]("jib default args")
     val jibEntrypoint      = settingKey[Option[List[String]]]("jib entrypoint")
     val jibImageFormat     = settingKey[JibImageFormat]("jib default image format")
@@ -78,6 +80,8 @@ object JibPlugin extends AutoPlugin {
     jibTargetImageCredentialHelper := None,
     jibUser                        := None,
     jibJvmFlags                    := Nil,
+    jibTcpPorts                    := Nil,
+    jibUdpPorts                    := Nil,
     jibArgs                        := Nil,
     jibEntrypoint                  := None,
     jibImageFormat                 := JibImageFormat.Docker,
@@ -147,6 +151,8 @@ object JibPlugin extends AutoPlugin {
       Private.sbtConfiguration.value,
       jibBaseImageCredentialHelper.value,
       jibJvmFlags.value,
+      jibTcpPorts.value,
+      jibUdpPorts.value,
       jibArgs.value,
       jibEntrypoint.value,
       jibEnvironment.value,
@@ -163,6 +169,8 @@ object JibPlugin extends AutoPlugin {
       jibBaseImageCredentialHelper.value,
       jibTargetImageCredentialHelper.value,
       jibJvmFlags.value,
+      jibTcpPorts.value,
+      jibUdpPorts.value,
       jibArgs.value,
       jibEntrypoint.value,
       jibImageFormat.value,
@@ -183,6 +191,8 @@ object JibPlugin extends AutoPlugin {
             Private.sbtConfiguration.value,
             jibBaseImageCredentialHelper.value,
             jibJvmFlags.value,
+            jibTcpPorts.value,
+            jibUdpPorts.value,
             jibArgs.value,
             jibEntrypoint.value,
             jibImageFormat.value,
