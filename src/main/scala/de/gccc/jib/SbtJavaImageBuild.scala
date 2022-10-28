@@ -44,7 +44,7 @@ private[jib] object SbtJavaImageBuild {
         .prepareJavaContainerBuilder(
           JavaContainerBuilder.from(configuration.baseImageFactory(jibBaseImageCredentialHelper)),
           configuration.layerConfigurations,
-          configuration.pickedMainClass,
+          Some(configuration.pickedMainClass),
           jvmFlags
         )
         .toContainerBuilder

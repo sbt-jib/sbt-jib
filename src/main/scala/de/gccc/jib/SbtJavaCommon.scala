@@ -23,7 +23,7 @@ private[jib] class SbtJavaCommon(logger: ManagedLogger) {
   def prepareJavaContainerBuilder(
       builder: JavaContainerBuilder,
       layerConfigurations: SbtLayerConfigurations,
-      mainClass: String,
+      mainClass: Option[String],
       jvmFlags: List[String]
   ): JavaContainerBuilder = {
     builder.addDependencies(
@@ -43,7 +43,7 @@ private[jib] class SbtJavaCommon(logger: ManagedLogger) {
     layerConfigurations.classes.filter(_.exists).foreach { f =>
       builder.addClasses(f.toPath, (p: Path) => p.toString.endsWith(".class"))
     }
-    builder.setMainClass(mainClass).addJvmFlags(jvmFlags.asJava)
+    builder.setMainClass(mainClass.orNull).addJvmFlags(jvmFlags.asJava)
   }
 
   def prepareJibContainerBuilder(
