@@ -41,7 +41,10 @@ object JibPlugin extends AutoPlugin {
     val jibJavaDockerBuild = taskKey[ImageReference]("jib build docker image, uses JavaContainerBuilder from jib-core")
     val jibJavaImageBuild =
       taskKey[ImageReference]("jib build image (does not need docker), uses JavaContainerBuilder from jib-core")
-    val jibJavaTarImageBuild           = inputKey[Unit]("jib build tar image, uses JavaContainerBuilder from jib-core")
+    val jibJavaTarImageBuild = inputKey[Unit]("jib build tar image, uses JavaContainerBuilder from jib-core")
+    val jibJavaAddToClasspath = settingKey[List[File]](
+      "Adds other files to the class path when using jibJava*. Serves as replacement for `jibMappings` and `jibExtraMappings` which don't work there."
+    )
     val jibTargetImageCredentialHelper = settingKey[Option[String]]("jib target image credential helper cli name")
     val jibRegistry                    = settingKey[String]("jib target image registry (defaults to docker hub)")
     val jibOrganization                = settingKey[String]("jib docker organization (defaults to organization)")
@@ -120,7 +123,8 @@ object JibPlugin extends AutoPlugin {
         (externalDependencyClasspath or (Runtime / externalDependencyClasspath)).value,
         jibExtraMappings.value,
         staged,
-        jibMappings.value
+        jibMappings.value,
+        jibJavaAddToClasspath.value
       )
     },
     Private.sbtConfiguration := {

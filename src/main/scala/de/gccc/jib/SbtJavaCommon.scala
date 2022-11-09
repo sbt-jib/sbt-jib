@@ -2,23 +2,13 @@ package de.gccc.jib
 
 import com.google.cloud.tools.jib.api.buildplan.{ ImageFormat, Platform, Port }
 import com.google.cloud.tools.jib.api.{ JavaContainerBuilder, JibContainerBuilder }
-import sbt.internal.util.ManagedLogger
 
-import java.io.File
 import java.nio.file.Path
 import scala.jdk.CollectionConverters._
 
-private[jib] class SbtJavaCommon(logger: ManagedLogger) {
+private[jib] object SbtJavaCommon {
 
   private def isSnapshotDependency(path: Path) = path.toString.endsWith("-SNAPSHOT.jar")
-
-  private def addToClasspath(builder: JavaContainerBuilder, mappings: Seq[(File, String)]): Unit =
-    builder.addToClasspath(
-      mappings.map { case (file, ignored) =>
-        logger.warn(s"The file `$file` won't be mapped to `$ignored` in the container, but directly to `$file`.")
-        file.toPath
-      }.asJava
-    )
 
   def prepareJavaContainerBuilder(
       builder: JavaContainerBuilder,
@@ -32,8 +22,7 @@ private[jib] class SbtJavaCommon(logger: ManagedLogger) {
     builder.addSnapshotDependencies(
       layerConfigurations.external.map(_.data.toPath).filter(isSnapshotDependency).asJava
     )
-    addToClasspath(builder, layerConfigurations.mappings)
-    addToClasspath(builder, layerConfigurations.extraMappings)
+    builder.addToClasspath(layerConfigurations.addToClasspath.map(_.toPath).asJava)
     builder.addProjectDependencies(
       layerConfigurations.internalDependencies.map(_.data.toPath).asJava
     )
