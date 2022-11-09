@@ -3,6 +3,7 @@ package de.gccc.jib
 import com.google.cloud.tools.jib.api.buildplan._
 import com.google.cloud.tools.jib.api._
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
+import sbt.Credentials
 import sbt.internal.util.ManagedLogger
 
 import java.io.File
@@ -35,21 +36,34 @@ private[jib] object SbtJavaImageBuild {
     }
 
     try {
-      val targetImage = configuration.targetImageFactory(jibTargetImageCredentialHelper)
-      val taggedImage =
-        additionalTags.foldRight(Containerizer.to(targetImage))((tag, image) => image.withAdditionalTag(tag))
+      JibCommon.setSendCredentialsOverHttp(configuration.sendCredentialsOverHttp)
 
-      val builder = SbtJavaCommon
-        .prepareJavaContainerBuilder(
-          JavaContainerBuilder.from(configuration.baseImageFactory(jibBaseImageCredentialHelper)),
+      val credsForHost = Credentials.forHost(configuration.credentials, _).map(c => (c.userName, c.passwd))
+      val baseImage = JibCommon
+        .baseImageFactory(configuration.baseImageReference)(jibBaseImageCredentialHelper, credsForHost, _ => ())
+      val repository =
+        configuration.customRepositoryPath.getOrElse(configuration.organization + "/" + configuration.name)
+      val targetImageReference = ImageReference.of(configuration.registry, repository, configuration.version)
+      val targetImage =
+        JibCommon.targetImageFactory(targetImageReference)(jibTargetImageCredentialHelper, credsForHost, _ => ())
+      val containerizer = Containerizer.to(targetImage)
+      JibCommon.configureContainerizer(containerizer)(
+        additionalTags,
+        configuration.allowInsecureRegistries,
+        configuration.USER_AGENT_SUFFIX,
+        configuration.target
+      )
+
+      val builder = JibCommon
+        .prepareJavaContainerBuilder(JavaContainerBuilder.from(baseImage))(
           configuration.layerConfigurations,
           Some(configuration.pickedMainClass),
-          jvmFlags
+          jvmFlags,
+          logger.warn
         )
         .toContainerBuilder
-      val container = SbtJavaCommon
-        .prepareJibContainerBuilder(
-          builder,
+      val container = JibCommon
+        .prepareJibContainerBuilder(builder)(
           tcpPorts,
           udpPorts,
           args,
@@ -60,12 +74,12 @@ private[jib] object SbtJavaImageBuild {
           useCurrentTimestamp,
           platforms
         )
-        .containerize(configuration.configureContainerizer(taggedImage))
+        .containerize(containerizer)
 
-      SbtJibHelper.writeJibOutputFiles(targetDirectory, container)
+      JibCommon.writeJibOutputFiles(container)(targetDirectory)
 
       logger.success("java image successfully created & uploaded")
-      configuration.targetImageReference
+      targetImageReference
     } catch {
       case NonFatal(t) =>
         logger.error(s"could not create java image (Exception: $t)")

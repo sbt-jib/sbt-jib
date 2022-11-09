@@ -26,24 +26,22 @@ private[jib] class SbtConfiguration(
     mainClass: Option[String],
     discoveredMainClasses: Seq[String],
     targetValue: File,
-    credentials: Seq[Credentials],
+    val credentials: Seq[Credentials],
     val baseImageReference: ImageReference,
     val registry: String,
     val organization: String,
     val name: String,
     val version: String,
-    customRepositoryPath: Option[String],
+    val customRepositoryPath: Option[String],
     val allowInsecureRegistries: Boolean,
-    sendCredentialsOverHttp: Boolean,
+    val sendCredentialsOverHttp: Boolean,
     val target: File
 ) {
 
-  private val USER_AGENT_SUFFIX = "jib-sbt-plugin"
+  val USER_AGENT_SUFFIX = "jib-sbt-plugin"
 
   // See: https://github.com/GoogleContainerTools/jib/blob/v0.19.0-core/jib-cli/src/main/java/com/google/cloud/tools/jib/cli/Containerizers.java#L98-L102
   System.setProperty(JibSystemProperties.SEND_CREDENTIALS_OVER_HTTP, sendCredentialsOverHttp.toString)
-
-  val repository: String = customRepositoryPath.getOrElse(organization + "/" + name)
 
   private val PLUGIN_NAME     = "jib-sbt-plugin"
   private val JAR_PLUGIN_NAME = "'sbt-jar-plugin'"
@@ -63,9 +61,6 @@ private[jib] class SbtConfiguration(
   }
 
   def getJarPluginName: String = JAR_PLUGIN_NAME
-
-  lazy val targetImageReference: ImageReference =
-    ImageReference.of(registry, repository, version)
 
   lazy val pickedMainClass: String = mainClass.getOrElse {
     discoveredMainClasses.toList match {
@@ -87,66 +82,6 @@ private[jib] class SbtConfiguration(
         val appRoot = AbsoluteUnixPath.get("/app")
         JavaEntrypointConstructor.makeDefaultEntrypoint(appRoot, jvmFlags.asJava, pickedMainClass)
     }
-  }
-
-  private def imageFactory(
-      imageReference: ImageReference,
-      credentialsEnv: (String, String),
-      credHelper: Option[String]
-  ) = {
-
-    val image = RegistryImage.named(imageReference)
-
-    val factory = CredentialRetrieverFactory.forImage(imageReference, { case (logEvent: LogEvent) => { /* no-op */ } })
-
-    val (usernameEnv, passwordEnv) = credentialsEnv
-
-    image.addCredentialRetriever(retrieveEnvCredentials(usernameEnv, passwordEnv))
-    image.addCredentialRetriever(retrieveSbtCredentials(imageReference))
-    image.addCredentialRetriever(factory.dockerConfig())
-    image.addCredentialRetriever(factory.wellKnownCredentialHelpers())
-    image.addCredentialRetriever(factory.googleApplicationDefaultCredentials())
-
-    credHelper.foreach { helper =>
-      image.addCredentialRetriever(factory.dockerCredentialHelper(helper))
-    }
-
-    image
-  }
-
-  private def retrieveEnvCredentials(usernameEnv: String, passwordEnv: String): CredentialRetriever = { () =>
-    {
-      val option = for {
-        username <- sys.env.get(usernameEnv)
-        password <- sys.env.get(passwordEnv)
-      } yield Credential.from(username, password)
-
-      Optional.ofNullable(option.orNull)
-    }
-  }
-
-  private def retrieveSbtCredentials(imageReference: ImageReference): CredentialRetriever = { () =>
-    {
-      val option =
-        Credentials.forHost(credentials, imageReference.getRegistry).map(c => Credential.from(c.userName, c.passwd))
-      Optional.ofNullable(option.orNull)
-    }
-  }
-
-  def baseImageFactory(jibBaseImageCredentialHelper: Option[String]): RegistryImage = {
-    imageFactory(
-      baseImageReference,
-      ("JIB_BASE_IMAGE_USERNAME", "JIB_BASE_IMAGE_PASSWORD"),
-      jibBaseImageCredentialHelper
-    )
-  }
-
-  def targetImageFactory(jibTargetImageCredentialHelper: Option[String]): RegistryImage = {
-    imageFactory(
-      targetImageReference,
-      ("JIB_TARGET_IMAGE_USERNAME", "JIB_TARGET_IMAGE_PASSWORD"),
-      jibTargetImageCredentialHelper
-    )
   }
 
   def configureContainerizer(containerizer: Containerizer): Containerizer = containerizer

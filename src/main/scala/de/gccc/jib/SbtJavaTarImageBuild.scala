@@ -39,7 +39,8 @@ private[jib] object SbtJavaTarImageBuild {
       val taggedImage =
         additionalTags.foldRight(Containerizer.to(targetImage))((tag, image) => image.withAdditionalTag(tag))
 
-      val builder = SbtJavaCommon
+      val sbtJavaCommon = new JibCommon(logger)
+      val builder = sbtJavaCommon
         .prepareJavaContainerBuilder(
           JavaContainerBuilder.from(configuration.baseImageFactory(jibBaseImageCredentialHelper)),
           configuration.layerConfigurations,
@@ -47,7 +48,7 @@ private[jib] object SbtJavaTarImageBuild {
           jvmFlags
         )
         .toContainerBuilder
-      val container = SbtJavaCommon
+      val container = sbtJavaCommon
         .prepareJibContainerBuilder(
           builder,
           tcpPorts,
