@@ -4,31 +4,32 @@ This project tries to make a sbt plugin for the awesome [jib](https://github.com
 
 ## settings
     
-| name                               | type                 | description                                                                                               |
-|------------------------------------|----------------------|-----------------------------------------------------------------------------------------------------------|
-| **jibTarget**                      | Option[File]         | jib work directory                                                                                        |
-| **jibBaseImage**                   | String               | jib base image                                                                                            |
-| **jibBaseImageCredentialHelper**   | Option[String]]      | jib base image credential helper cli name (e.g. ecr-login)                                                |
-| **jibJvmFlags**                    | List[String]]        | jib default jvm flags                                                                                     |
-| **jibArgs**                        | List[String]]        | jib default args                                                                                          |
-| **jibEntrypoint**                  | Option[List[String]] | jib entrypoint                                                                                            |
-| **jibImageFormat**                 | JibImageFormat       | jib default image format                                                                                  |
-| **jibTargetImageCredentialHelper** | Option[String]       | jib target image credential helper cli name                                                               |
-| **jibRegistry**                    | String               | jib target image registry (defaults to docker hub)                                                        |
-| **jibOrganization**                | String               | jib docker organization (defaults to organization)                                                        |
-| **jibName**                        | String               | jib image name (defaults to project name)                                                                 |
-| **jibVersion**                     | String               | jib version (defaults to version)                                                                         |
-| **jibEnvironment**                 | Map[String, String]  | jib docker env variables                                                                                  |
-| **jibPlatforms**                   | Set[Platform]        | jib platforms                                                                                             |
-| **jibLabels**                      | Map[String, String]  | jib docker labels                                                                                         |
-| **jibPortsTcp**                    | List[Int]            | jib docker exposed tcp ports                                                                                  |
-| **jibPortsUdp**                    | List[Int]            | jib docker exposed udp ports                                                                                  |
-| **jibTags**                        | List[String]         | jib image tags (in addition to jibVersion)                                                                |
-| **jibUser**                        | Option[String]       | jib user and group to run the container as                                                                |
-| **jibMappings**                    | Seq[(File, String)]  | jib additional resource mappings, <br>formatted as \<source file resource\> -> \<full path on container\> |
-| **jibExtraMappings**               | Seq[(File, String)]  | jib extra file mappings / i.e. java agents <br>(see above for formatting)                                 |
-| **jibUseCurrentTimestamp**         | Boolean              | jib use current timestamp for image creation time. Default to Epoch                                       |
-| **jibCustomRepositoryPath**        | Option[String]       | jib custom repository path freeform path structure. <br>The default repo structure is organization/name   |
+| name                               | type                 | description                                                                                                                                    |
+|------------------------------------|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| **jibTarget**                      | Option[File]         | jib work directory                                                                                                                             |
+| **jibBaseImage**                   | String               | jib base image                                                                                                                                 |
+| **jibBaseImageCredentialHelper**   | Option[String]]      | jib base image credential helper cli name (e.g. ecr-login)                                                                                     |
+| **jibJvmFlags**                    | List[String]]        | jib default jvm flags                                                                                                                          |
+| **jibArgs**                        | List[String]]        | jib default args                                                                                                                               |
+| **jibEntrypoint**                  | Option[List[String]] | jib entrypoint                                                                                                                                 |
+| **jibImageFormat**                 | JibImageFormat       | jib default image format                                                                                                                       |
+| **jibTargetImageCredentialHelper** | Option[String]       | jib target image credential helper cli name                                                                                                    |
+| **jibRegistry**                    | String               | jib target image registry (defaults to docker hub)                                                                                             |
+| **jibOrganization**                | String               | jib docker organization (defaults to organization)                                                                                             |
+| **jibName**                        | String               | jib image name (defaults to project name)                                                                                                      |
+| **jibVersion**                     | String               | jib version (defaults to version)                                                                                                              |
+| **jibEnvironment**                 | Map[String, String]  | jib docker env variables                                                                                                                       |
+| **jibPlatforms**                   | Set[Platform]        | jib platforms                                                                                                                                  |
+| **jibLabels**                      | Map[String, String]  | jib docker labels                                                                                                                              |
+| **jibPortsTcp**                    | List[Int]            | jib docker exposed tcp ports                                                                                                                   |
+| **jibPortsUdp**                    | List[Int]            | jib docker exposed udp ports                                                                                                                   |
+| **jibTags**                        | List[String]         | jib image tags (in addition to jibVersion)                                                                                                     |
+| **jibUser**                        | Option[String]       | jib user and group to run the container as                                                                                                     |
+| **jibMappings**                    | Seq[(File, String)]  | jib additional resource mappings, <br>formatted as \<source file resource\> -> \<full path on container\>                                      |
+| **jibExtraMappings**               | Seq[(File, String)]  | jib extra file mappings / i.e. java agents <br>(see above for formatting)                                                                      |
+| **jibJavaAddToClasspath**          | List[File]           | Adds other files to the class path when using jibJava*. Serves as replacement for `jibMappings` and `jibExtraMappings` which don't work there. |
+| **jibUseCurrentTimestamp**         | Boolean              | jib use current timestamp for image creation time. Default to Epoch                                                                            |
+| **jibCustomRepositoryPath**        | Option[String]       | jib custom repository path freeform path structure. <br>The default repo structure is organization/name                                        |
 
 ## commands
 
@@ -37,6 +38,9 @@ This project tries to make a sbt plugin for the awesome [jib](https://github.com
 | **jibDockerBuild**     | jib build docker image |
 | **jibImageBuild**      | jib build image (does not need docker) |
 | **jibTarImageBuild**   | jib build tar image |
+| **jibJavaDockerBuild**   | jib build docker image, uses JavaContainerBuilder from jib-core |
+| **jibJavaImageBuild**    | jib build image (does not need docker), uses JavaContainerBuilder from jib-core |
+| **jibJavaTarImageBuild** | jib build tar image, uses JavaContainerBuilder from jib-core |
 
 ## credentials
 
