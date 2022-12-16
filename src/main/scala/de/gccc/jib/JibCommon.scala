@@ -4,13 +4,13 @@ import com.google.cloud.tools.jib.api.buildplan._
 import com.google.cloud.tools.jib.api._
 import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory
 import com.google.cloud.tools.jib.global.JibSystemProperties
-import sbt.sbtOptionSyntaxRichOption
-import sun.nio.cs.UTF_8
 
 import java.io.File
+import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{ Files, Path }
 import scala.jdk.CollectionConverters._
 import scala.compat.java8.FunctionConverters._
+import scala.compat.java8.OptionConverters._
 import scala.language.postfixOps
 
 private[jib] object JibCommon {
@@ -58,8 +58,7 @@ private[jib] object JibCommon {
   }
 
   def prepareJibContainerBuilder(builder: JibContainerBuilder)(
-      tcpPorts: List[Int],
-      udpPorts: List[Int],
+      ports: Set[Port],
       args: List[String],
       internalImageFormat: ImageFormat,
       environment: Map[String, String],
@@ -74,7 +73,7 @@ private[jib] object JibCommon {
     .setUser(user.orNull)
     .setProgramArguments(args.asJava)
     .setFormat(internalImageFormat)
-    .setExposedPorts((tcpPorts.toSet.map(s => Port.tcp(s)) ++ udpPorts.toSet.map(s => Port.udp(s))).asJava)
+    .setExposedPorts(ports.asJava)
     .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
 
   private def imageFactory(
@@ -176,6 +175,7 @@ private[jib] object JibCommon {
     Files.write(targetDirectory.toPath.resolve("jib-image.json"), jsonString.getBytes(UTF_8))
   }
 
+  // See: https://github.com/GoogleContainerTools/jib/blob/v0.19.0-core/jib-cli/src/main/java/com/google/cloud/tools/jib/cli/Containerizers.java#L98-L102
   def setSendCredentialsOverHttp(sendCredentialsOverHttp: Boolean): Unit =
     System.setProperty(JibSystemProperties.SEND_CREDENTIALS_OVER_HTTP, sendCredentialsOverHttp.toString)
 }

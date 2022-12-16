@@ -40,8 +40,9 @@ private[jib] class SbtConfiguration(
 
   val USER_AGENT_SUFFIX = "jib-sbt-plugin"
 
-  // See: https://github.com/GoogleContainerTools/jib/blob/v0.19.0-core/jib-cli/src/main/java/com/google/cloud/tools/jib/cli/Containerizers.java#L98-L102
-  System.setProperty(JibSystemProperties.SEND_CREDENTIALS_OVER_HTTP, sendCredentialsOverHttp.toString)
+  JibCommon.setSendCredentialsOverHttp(sendCredentialsOverHttp)
+
+  val repository: String = customRepositoryPath.getOrElse(organization + "/" + name)
 
   private val PLUGIN_NAME     = "jib-sbt-plugin"
   private val JAR_PLUGIN_NAME = "'sbt-jar-plugin'"
@@ -61,6 +62,12 @@ private[jib] class SbtConfiguration(
   }
 
   def getJarPluginName: String = JAR_PLUGIN_NAME
+
+  lazy val targetImageReference: ImageReference =
+    ImageReference.of(registry, repository, version)
+
+  val credsForHost: String => Option[(String, String)] =
+    Credentials.forHost(credentials, _).map(c => (c.userName, c.passwd))
 
   lazy val pickedMainClass: String = mainClass.getOrElse {
     discoveredMainClasses.toList match {
@@ -84,9 +91,4 @@ private[jib] class SbtConfiguration(
     }
   }
 
-  def configureContainerizer(containerizer: Containerizer): Containerizer = containerizer
-    .setAllowInsecureRegistries(allowInsecureRegistries)
-    .setToolName(USER_AGENT_SUFFIX)
-    .setApplicationLayersCache(target.toPath.resolve("application-layer-cache"))
-    .setBaseImageLayersCache(target.toPath.resolve("base-image-layer-cache"))
 }

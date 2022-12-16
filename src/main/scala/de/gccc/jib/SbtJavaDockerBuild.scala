@@ -32,23 +32,28 @@ private[jib] object SbtJavaDockerBuild {
 
     try {
       val targetImage = DockerDaemonImage.named(configuration.targetImageReference)
-      val taggedImage =
-        additionalTags.foldRight(Containerizer.to(targetImage))((tag, image) => image.withAdditionalTag(tag))
-
-      val sbtJavaCommon = new JibCommon(logger)
-      val builder = sbtJavaCommon
-        .prepareJavaContainerBuilder(
-          JavaContainerBuilder.from(configuration.baseImageFactory(jibBaseImageCredentialHelper)),
+      val baseImage = JibCommon.baseImageFactory(configuration.baseImageReference)(
+        jibBaseImageCredentialHelper,
+        configuration.credsForHost,
+        _ => ()
+      )
+      val containerizer = JibCommon.configureContainerizer(Containerizer.to(targetImage))(
+        additionalTags,
+        configuration.allowInsecureRegistries,
+        configuration.USER_AGENT_SUFFIX,
+        configuration.target
+      )
+      val builder = JibCommon
+        .prepareJavaContainerBuilder(JavaContainerBuilder.from(baseImage))(
           configuration.layerConfigurations,
           Some(configuration.pickedMainClass),
-          jvmFlags
+          jvmFlags,
+          logger.warn
         )
         .toContainerBuilder
-      val container = sbtJavaCommon
-        .prepareJibContainerBuilder(
-          builder,
-          tcpPorts,
-          udpPorts,
+      val container = JibCommon
+        .prepareJibContainerBuilder(builder)(
+          tcpPorts.toSet.map(s => Port.tcp(s)) ++ udpPorts.toSet.map(s => Port.udp(s)),
           args,
           ImageFormat.Docker,
           environment,
@@ -57,9 +62,9 @@ private[jib] object SbtJavaDockerBuild {
           useCurrentTimestamp,
           platforms
         )
-        .containerize(configuration.configureContainerizer(taggedImage))
+        .containerize(containerizer)
 
-      SbtJibHelper.writeJibOutputFiles(targetDirectory, container)
+      JibCommon.writeJibOutputFiles(container)(targetDirectory)
 
       logger.success("java image successfully created & uploaded")
       configuration.targetImageReference

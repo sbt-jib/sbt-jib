@@ -33,14 +33,9 @@ private[jib] object SbtJavaTarImageBuild {
     }
 
     try {
-      val imageReference = ImageReference.of(configuration.registry, configuration.repository, configuration.version)
+      val targetImage = TarImage.at(home.toPath).named(configuration.targetImageReference)
 
-      val targetImage = TarImage.at(home.toPath).named(imageReference)
-      val taggedImage =
-        additionalTags.foldRight(Containerizer.to(targetImage))((tag, image) => image.withAdditionalTag(tag))
-
-      val sbtJavaCommon = new JibCommon(logger)
-      val builder = sbtJavaCommon
+      val builder = JibCommon
         .prepareJavaContainerBuilder(
           JavaContainerBuilder.from(configuration.baseImageFactory(jibBaseImageCredentialHelper)),
           configuration.layerConfigurations,

@@ -36,24 +36,22 @@ private[jib] object SbtJavaImageBuild {
     }
 
     try {
-      JibCommon.setSendCredentialsOverHttp(configuration.sendCredentialsOverHttp)
-
-      val credsForHost = Credentials.forHost(configuration.credentials, _).map(c => (c.userName, c.passwd))
-      val baseImage = JibCommon
-        .baseImageFactory(configuration.baseImageReference)(jibBaseImageCredentialHelper, credsForHost, _ => ())
-      val repository =
-        configuration.customRepositoryPath.getOrElse(configuration.organization + "/" + configuration.name)
-      val targetImageReference = ImageReference.of(configuration.registry, repository, configuration.version)
-      val targetImage =
-        JibCommon.targetImageFactory(targetImageReference)(jibTargetImageCredentialHelper, credsForHost, _ => ())
-      val containerizer = Containerizer.to(targetImage)
-      JibCommon.configureContainerizer(containerizer)(
+      val targetImage = JibCommon.targetImageFactory(configuration.targetImageReference)(
+        jibTargetImageCredentialHelper,
+        configuration.credsForHost,
+        _ => ()
+      )
+      val baseImage = JibCommon.baseImageFactory(configuration.baseImageReference)(
+        jibBaseImageCredentialHelper,
+        configuration.credsForHost,
+        _ => ()
+      )
+      val containerizer = JibCommon.configureContainerizer(Containerizer.to(targetImage))(
         additionalTags,
         configuration.allowInsecureRegistries,
         configuration.USER_AGENT_SUFFIX,
         configuration.target
       )
-
       val builder = JibCommon
         .prepareJavaContainerBuilder(JavaContainerBuilder.from(baseImage))(
           configuration.layerConfigurations,
@@ -64,8 +62,7 @@ private[jib] object SbtJavaImageBuild {
         .toContainerBuilder
       val container = JibCommon
         .prepareJibContainerBuilder(builder)(
-          tcpPorts,
-          udpPorts,
+          tcpPorts.toSet.map(s => Port.tcp(s)) ++ udpPorts.toSet.map(s => Port.udp(s)),
           args,
           internalImageFormat,
           environment,
@@ -79,7 +76,7 @@ private[jib] object SbtJavaImageBuild {
       JibCommon.writeJibOutputFiles(container)(targetDirectory)
 
       logger.success("java image successfully created & uploaded")
-      targetImageReference
+      configuration.targetImageReference
     } catch {
       case NonFatal(t) =>
         logger.error(s"could not create java image (Exception: $t)")
