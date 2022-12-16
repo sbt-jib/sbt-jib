@@ -100,6 +100,7 @@ object JibPlugin extends AutoPlugin {
     JibExtra / mappings            := Nil,
     jibMappings                    := (Jib / mappings).value,
     jibExtraMappings               := (JibExtra / mappings).value,
+    jibJavaAddToClasspath          := Nil,
     jibUseCurrentTimestamp         := false,
     jibCustomRepositoryPath        := None,
     jibTarget                      := target.value / "jib",
