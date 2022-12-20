@@ -1,23 +1,13 @@
 package de.gccc.jib
 
 import com.google.cloud.tools.jib.api.buildplan.{ AbsoluteUnixPath, FileEntriesLayer }
-import com.google.cloud.tools.jib.api.{
-  Containerizer,
-  Credential,
-  CredentialRetriever,
-  ImageReference,
-  LogEvent,
-  RegistryImage
-}
-import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory
-import com.google.cloud.tools.jib.global.JibSystemProperties
+import com.google.cloud.tools.jib.api.{ ImageReference, LogEvent }
 import com.google.common.collect.ImmutableList
 import sbt.librarymanagement.ivy.Credentials
-import sbt.util.Logger
+import sbt.util.{ Level, Logger }
 
 import java.io.File
 import java.nio.file.{ Files, Path }
-import java.util.Optional
 import scala.collection.JavaConverters._
 
 private[jib] class SbtConfiguration(
@@ -68,6 +58,18 @@ private[jib] class SbtConfiguration(
 
   val credsForHost: String => Option[(String, String)] =
     Credentials.forHost(credentials, _).map(c => (c.userName, c.passwd))
+
+  def logEvent(logEvent: LogEvent): Unit = {
+    val level = logEvent.getLevel match {
+      case LogEvent.Level.DEBUG     => Level.Debug
+      case LogEvent.Level.INFO      => Level.Info
+      case LogEvent.Level.PROGRESS  => Level.Info
+      case LogEvent.Level.LIFECYCLE => Level.Info
+      case LogEvent.Level.WARN      => Level.Warn
+      case LogEvent.Level.ERROR     => Level.Error
+    }
+    logger.log(level, logEvent.getMessage)
+  }
 
   lazy val pickedMainClass: String = mainClass.getOrElse {
     discoveredMainClasses.toList match {

@@ -26,46 +26,32 @@ private[jib] object SbtJavaTarImageBuild {
       user: Option[String],
       useCurrentTimestamp: Boolean,
       platforms: Set[Platform]
-  ): Unit = {
-    val internalImageFormat = imageFormat match {
-      case JibImageFormat.Docker => ImageFormat.Docker
-      case JibImageFormat.OCI    => ImageFormat.OCI
-    }
-
+  ): Unit =
     try {
-      val targetImage = TarImage.at(home.toPath).named(configuration.targetImageReference)
-
-      val builder = JibCommon
-        .prepareJavaContainerBuilder(
-          JavaContainerBuilder.from(configuration.baseImageFactory(jibBaseImageCredentialHelper)),
-          configuration.layerConfigurations,
-          Some(configuration.pickedMainClass),
-          jvmFlags
-        )
-        .toContainerBuilder
-      val container = sbtJavaCommon
-        .prepareJibContainerBuilder(
-          builder,
-          tcpPorts,
-          udpPorts,
-          args,
-          internalImageFormat,
-          environment,
-          labels,
-          user,
-          useCurrentTimestamp,
-          platforms
-        )
-        .containerize(configuration.configureContainerizer(taggedImage))
-
-      SbtJibHelper.writeJibOutputFiles(targetDirectory, container)
-
+      val targetImage   = TarImage.at(home.toPath).named(configuration.targetImageReference)
+      val containerizer = Containerizer.to(targetImage)
+      SbtJibHelper.javaBuild(
+        targetDirectory,
+        logger,
+        configuration,
+        jibBaseImageCredentialHelper,
+        jvmFlags,
+        tcpPorts,
+        udpPorts,
+        args,
+        imageFormat,
+        environment,
+        labels,
+        additionalTags,
+        user,
+        useCurrentTimestamp,
+        platforms
+      )(containerizer)
       logger.success("java image successfully created & uploaded")
     } catch {
       case NonFatal(t) =>
         logger.error(s"could not create java tar image (Exception: $t)")
         throw t
     }
-  }
 
 }

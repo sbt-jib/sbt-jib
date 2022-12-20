@@ -28,53 +28,31 @@ private[jib] object SbtJavaImageBuild {
       user: Option[String],
       useCurrentTimestamp: Boolean,
       platforms: Set[Platform]
-  ): ImageReference = {
-
-    val internalImageFormat = imageFormat match {
-      case JibImageFormat.Docker => ImageFormat.Docker
-      case JibImageFormat.OCI    => ImageFormat.OCI
-    }
-
+  ): ImageReference =
     try {
       val targetImage = JibCommon.targetImageFactory(configuration.targetImageReference)(
         jibTargetImageCredentialHelper,
         configuration.credsForHost,
         _ => ()
       )
-      val baseImage = JibCommon.baseImageFactory(configuration.baseImageReference)(
+      val containerizer = Containerizer.to(targetImage)
+      SbtJibHelper.javaBuild(
+        targetDirectory,
+        logger,
+        configuration,
         jibBaseImageCredentialHelper,
-        configuration.credsForHost,
-        _ => ()
-      )
-      val containerizer = JibCommon.configureContainerizer(Containerizer.to(targetImage))(
+        jvmFlags,
+        tcpPorts,
+        udpPorts,
+        args,
+        imageFormat,
+        environment,
+        labels,
         additionalTags,
-        configuration.allowInsecureRegistries,
-        configuration.USER_AGENT_SUFFIX,
-        configuration.target
-      )
-      val builder = JibCommon
-        .prepareJavaContainerBuilder(JavaContainerBuilder.from(baseImage))(
-          configuration.layerConfigurations,
-          Some(configuration.pickedMainClass),
-          jvmFlags,
-          logger.warn
-        )
-        .toContainerBuilder
-      val container = JibCommon
-        .prepareJibContainerBuilder(builder)(
-          tcpPorts.toSet.map(s => Port.tcp(s)) ++ udpPorts.toSet.map(s => Port.udp(s)),
-          args,
-          internalImageFormat,
-          environment,
-          labels,
-          user,
-          useCurrentTimestamp,
-          platforms
-        )
-        .containerize(containerizer)
-
-      JibCommon.writeJibOutputFiles(container)(targetDirectory)
-
+        user,
+        useCurrentTimestamp,
+        platforms
+      )(containerizer)
       logger.success("java image successfully created & uploaded")
       configuration.targetImageReference
     } catch {
@@ -82,6 +60,5 @@ private[jib] object SbtJavaImageBuild {
         logger.error(s"could not create java image (Exception: $t)")
         throw t
     }
-  }
 
 }

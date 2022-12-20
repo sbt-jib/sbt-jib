@@ -1,14 +1,11 @@
 package de.gccc.jib
 
-import java.io.File
-import com.google.cloud.tools.jib.api.buildplan.{ AbsoluteUnixPath, FileEntriesLayer, ImageFormat, Platform, Port }
-import com.google.cloud.tools.jib.api.{ Containerizer, ImageReference, JavaContainerBuilder, JibContainer }
+import com.google.cloud.tools.jib.api.buildplan._
+import com.google.cloud.tools.jib.api.{ Containerizer, JavaContainerBuilder }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
 
-import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.Files
-import scala.jdk.CollectionConverters.collectionAsScalaIterableConverter
+import java.io.File
 
 private[jib] object SbtJibHelper {
 
@@ -43,7 +40,7 @@ private[jib] object SbtJibHelper {
       user: Option[String],
       useCurrentTimestamp: Boolean,
       platforms: Set[Platform]
-  )(containerizer: Containerizer): ImageReference = {
+  )(containerizer: Containerizer): Unit = {
     val internalImageFormat = imageFormat match {
       case JibImageFormat.Docker => ImageFormat.Docker
       case JibImageFormat.OCI    => ImageFormat.OCI
@@ -51,9 +48,9 @@ private[jib] object SbtJibHelper {
     val baseImage = JibCommon.baseImageFactory(configuration.baseImageReference)(
       jibBaseImageCredentialHelper,
       configuration.credsForHost,
-      _ => ()
+      configuration.logEvent
     )
-    val _ = JibCommon.configureContainerizer(containerizer)(
+    JibCommon.configureContainerizer(containerizer)(
       additionalTags,
       configuration.allowInsecureRegistries,
       configuration.USER_AGENT_SUFFIX,
@@ -64,7 +61,7 @@ private[jib] object SbtJibHelper {
         configuration.layerConfigurations,
         Some(configuration.pickedMainClass),
         jvmFlags,
-        logger.warn
+        logger.warn(_)
       )
       .toContainerBuilder
     val container = JibCommon
@@ -81,7 +78,5 @@ private[jib] object SbtJibHelper {
       .containerize(containerizer)
 
     JibCommon.writeJibOutputFiles(container)(targetDirectory)
-
-    configuration.targetImageReference
   }
 }

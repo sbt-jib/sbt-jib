@@ -3,6 +3,7 @@ package de.gccc.jib
 import com.google.cloud.tools.jib.api.buildplan._
 import com.google.cloud.tools.jib.api._
 import com.google.cloud.tools.jib.docker.CliDockerClient
+import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
 
 import java.io.File
@@ -29,43 +30,26 @@ private[jib] object SbtJavaDockerBuild {
     if (!CliDockerClient.isDefaultDockerInstalled) {
       throw new Exception("Build to Docker daemon failed")
     }
-
     try {
-      val targetImage = DockerDaemonImage.named(configuration.targetImageReference)
-      val baseImage = JibCommon.baseImageFactory(configuration.baseImageReference)(
+      val targetImage   = DockerDaemonImage.named(configuration.targetImageReference)
+      val containerizer = Containerizer.to(targetImage)
+      SbtJibHelper.javaBuild(
+        targetDirectory,
+        logger,
+        configuration,
         jibBaseImageCredentialHelper,
-        configuration.credsForHost,
-        _ => ()
-      )
-      val containerizer = JibCommon.configureContainerizer(Containerizer.to(targetImage))(
+        jvmFlags,
+        tcpPorts,
+        udpPorts,
+        args,
+        JibImageFormat.Docker,
+        environment,
+        labels,
         additionalTags,
-        configuration.allowInsecureRegistries,
-        configuration.USER_AGENT_SUFFIX,
-        configuration.target
-      )
-      val builder = JibCommon
-        .prepareJavaContainerBuilder(JavaContainerBuilder.from(baseImage))(
-          configuration.layerConfigurations,
-          Some(configuration.pickedMainClass),
-          jvmFlags,
-          logger.warn
-        )
-        .toContainerBuilder
-      val container = JibCommon
-        .prepareJibContainerBuilder(builder)(
-          tcpPorts.toSet.map(s => Port.tcp(s)) ++ udpPorts.toSet.map(s => Port.udp(s)),
-          args,
-          ImageFormat.Docker,
-          environment,
-          labels,
-          user,
-          useCurrentTimestamp,
-          platforms
-        )
-        .containerize(containerizer)
-
-      JibCommon.writeJibOutputFiles(container)(targetDirectory)
-
+        user,
+        useCurrentTimestamp,
+        platforms
+      )(containerizer)
       logger.success("java image successfully created & uploaded")
       configuration.targetImageReference
     } catch {

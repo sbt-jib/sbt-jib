@@ -153,7 +153,7 @@ private[jib] object JibCommon {
       allowInsecureRegistries: Boolean,
       USER_AGENT_SUFFIX: String,
       target: File
-  ): Containerizer = {
+  ): Unit = {
     additionalTags.foldRight(containerizer)((tag, image) => image.withAdditionalTag(tag))
     containerizer
       .setAllowInsecureRegistries(allowInsecureRegistries)
