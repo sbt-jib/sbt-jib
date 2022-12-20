@@ -16,15 +16,15 @@ private[jib] class SbtConfiguration(
     mainClass: Option[String],
     discoveredMainClasses: Seq[String],
     targetValue: File,
-    val credentials: Seq[Credentials],
+    credentials: Seq[Credentials],
     val baseImageReference: ImageReference,
     val registry: String,
     val organization: String,
     val name: String,
     val version: String,
-    val customRepositoryPath: Option[String],
+    customRepositoryPath: Option[String],
     val allowInsecureRegistries: Boolean,
-    val sendCredentialsOverHttp: Boolean,
+    sendCredentialsOverHttp: Boolean,
     val target: File
 ) {
 
