@@ -78,7 +78,7 @@ object JibPlugin extends AutoPlugin {
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
     // public values
-    jibBaseImage                   := "registry.hub.docker.com/schmitch/graalvm:latest",
+    jibBaseImage                   := "ghcr.io/graalvm/jdk:latest",
     jibBaseImageCredentialHelper   := None,
     jibTargetImageCredentialHelper := None,
     jibUser                        := None,
