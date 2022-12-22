@@ -3,6 +3,7 @@ package de.gccc.jib
 import com.google.cloud.tools.jib.api.buildplan._
 import com.google.cloud.tools.jib.api._
 import com.google.cloud.tools.jib.docker.CliDockerClient
+import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
 
 import java.io.File
@@ -29,37 +30,26 @@ private[jib] object SbtJavaDockerBuild {
     if (!CliDockerClient.isDefaultDockerInstalled) {
       throw new Exception("Build to Docker daemon failed")
     }
-
     try {
-      val targetImage = DockerDaemonImage.named(configuration.targetImageReference)
-      val taggedImage =
-        additionalTags.foldRight(Containerizer.to(targetImage))((tag, image) => image.withAdditionalTag(tag))
-
-      val builder = SbtJavaCommon
-        .prepareJavaContainerBuilder(
-          JavaContainerBuilder.from(configuration.baseImageFactory(jibBaseImageCredentialHelper)),
-          configuration.layerConfigurations,
-          Some(configuration.pickedMainClass),
-          jvmFlags
-        )
-        .toContainerBuilder
-      val container = SbtJavaCommon
-        .prepareJibContainerBuilder(
-          builder,
-          tcpPorts,
-          udpPorts,
-          args,
-          ImageFormat.Docker,
-          environment,
-          labels,
-          user,
-          useCurrentTimestamp,
-          platforms
-        )
-        .containerize(configuration.configureContainerizer(taggedImage))
-
-      SbtJibHelper.writeJibOutputFiles(targetDirectory, container)
-
+      val targetImage   = DockerDaemonImage.named(configuration.targetImageReference)
+      val containerizer = Containerizer.to(targetImage)
+      SbtJibHelper.javaBuild(
+        targetDirectory,
+        logger,
+        configuration,
+        jibBaseImageCredentialHelper,
+        jvmFlags,
+        tcpPorts,
+        udpPorts,
+        args,
+        JibImageFormat.Docker,
+        environment,
+        labels,
+        additionalTags,
+        user,
+        useCurrentTimestamp,
+        platforms
+      )(containerizer)
       logger.success("java image successfully created & uploaded")
       configuration.targetImageReference
     } catch {

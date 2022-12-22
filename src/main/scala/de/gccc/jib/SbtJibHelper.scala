@@ -1,12 +1,11 @@
 package de.gccc.jib
 
-import java.io.File
-import com.google.cloud.tools.jib.api.buildplan.{ AbsoluteUnixPath, FileEntriesLayer }
-import com.google.cloud.tools.jib.api.JibContainer
+import com.google.cloud.tools.jib.api.buildplan._
+import com.google.cloud.tools.jib.api.{ Containerizer, JavaContainerBuilder }
+import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
+import sbt.internal.util.ManagedLogger
 
-import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.Files
-import scala.jdk.CollectionConverters.collectionAsScalaIterableConverter
+import java.io.File
 
 private[jib] object SbtJibHelper {
 
@@ -25,17 +24,59 @@ private[jib] object SbtJibHelper {
     layerBuilder.build()
   }
 
-  def writeJibOutputFiles(targetDirectory: File, container: JibContainer): Unit = {
-    Files.write(targetDirectory.toPath.resolve("jib-image.digest"), container.getDigest.toString.getBytes(UTF_8))
-    Files.write(targetDirectory.toPath.resolve("jib-image.id"), container.getImageId.toString.getBytes(UTF_8))
-    val jsonString =
-      s"""{
-         |   "image": "${container.getTargetImage}",
-         |   "imageId": "${container.getImageId}",
-         |   "imageDigest": "${container.getDigest}",
-         |   "tags": ${container.getTags.asScala.mkString("[\"", "\", \"", "\"]")}
-         |}""".stripMargin
-    Files.write(targetDirectory.toPath.resolve("jib-image.json"), jsonString.getBytes(UTF_8))
-  }
+  def javaBuild(
+      targetDirectory: File,
+      logger: ManagedLogger,
+      configuration: SbtConfiguration,
+      jibBaseImageCredentialHelper: Option[String],
+      jvmFlags: List[String],
+      tcpPorts: List[Int],
+      udpPorts: List[Int],
+      args: List[String],
+      imageFormat: JibImageFormat,
+      environment: Map[String, String],
+      labels: Map[String, String],
+      additionalTags: List[String],
+      user: Option[String],
+      useCurrentTimestamp: Boolean,
+      platforms: Set[Platform]
+  )(containerizer: Containerizer): Unit = {
+    val internalImageFormat = imageFormat match {
+      case JibImageFormat.Docker => ImageFormat.Docker
+      case JibImageFormat.OCI    => ImageFormat.OCI
+    }
+    val baseImage = JibCommon.baseImageFactory(configuration.baseImageReference)(
+      jibBaseImageCredentialHelper,
+      configuration.credsForHost,
+      configuration.logEvent
+    )
+    JibCommon.configureContainerizer(containerizer)(
+      additionalTags,
+      configuration.allowInsecureRegistries,
+      configuration.USER_AGENT_SUFFIX,
+      configuration.target
+    )
+    val builder = JibCommon
+      .prepareJavaContainerBuilder(JavaContainerBuilder.from(baseImage))(
+        configuration.layerConfigurations,
+        Some(configuration.pickedMainClass),
+        jvmFlags,
+        logger.warn(_)
+      )
+      .toContainerBuilder
+    val container = JibCommon
+      .prepareJibContainerBuilder(builder)(
+        tcpPorts.toSet.map(s => Port.tcp(s)) ++ udpPorts.toSet.map(s => Port.udp(s)),
+        args,
+        internalImageFormat,
+        environment,
+        labels,
+        user,
+        useCurrentTimestamp,
+        platforms
+      )
+      .containerize(containerizer)
 
+    JibCommon.writeJibOutputFiles(container)(targetDirectory)
+  }
 }

@@ -3,6 +3,7 @@ package de.gccc.jib
 import com.google.cloud.tools.jib.api.buildplan._
 import com.google.cloud.tools.jib.api._
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
+import sbt.Credentials
 import sbt.internal.util.ManagedLogger
 
 import java.io.File
@@ -27,43 +28,31 @@ private[jib] object SbtJavaImageBuild {
       user: Option[String],
       useCurrentTimestamp: Boolean,
       platforms: Set[Platform]
-  ): ImageReference = {
-
-    val internalImageFormat = imageFormat match {
-      case JibImageFormat.Docker => ImageFormat.Docker
-      case JibImageFormat.OCI    => ImageFormat.OCI
-    }
-
+  ): ImageReference =
     try {
-      val targetImage = configuration.targetImageFactory(jibTargetImageCredentialHelper)
-      val taggedImage =
-        additionalTags.foldRight(Containerizer.to(targetImage))((tag, image) => image.withAdditionalTag(tag))
-
-      val builder = SbtJavaCommon
-        .prepareJavaContainerBuilder(
-          JavaContainerBuilder.from(configuration.baseImageFactory(jibBaseImageCredentialHelper)),
-          configuration.layerConfigurations,
-          Some(configuration.pickedMainClass),
-          jvmFlags
-        )
-        .toContainerBuilder
-      val container = SbtJavaCommon
-        .prepareJibContainerBuilder(
-          builder,
-          tcpPorts,
-          udpPorts,
-          args,
-          internalImageFormat,
-          environment,
-          labels,
-          user,
-          useCurrentTimestamp,
-          platforms
-        )
-        .containerize(configuration.configureContainerizer(taggedImage))
-
-      SbtJibHelper.writeJibOutputFiles(targetDirectory, container)
-
+      val targetImage = JibCommon.targetImageFactory(configuration.targetImageReference)(
+        jibTargetImageCredentialHelper,
+        configuration.credsForHost,
+        _ => ()
+      )
+      val containerizer = Containerizer.to(targetImage)
+      SbtJibHelper.javaBuild(
+        targetDirectory,
+        logger,
+        configuration,
+        jibBaseImageCredentialHelper,
+        jvmFlags,
+        tcpPorts,
+        udpPorts,
+        args,
+        imageFormat,
+        environment,
+        labels,
+        additionalTags,
+        user,
+        useCurrentTimestamp,
+        platforms
+      )(containerizer)
       logger.success("java image successfully created & uploaded")
       configuration.targetImageReference
     } catch {
@@ -71,6 +60,5 @@ private[jib] object SbtJavaImageBuild {
         logger.error(s"could not create java image (Exception: $t)")
         throw t
     }
-  }
 
 }

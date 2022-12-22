@@ -37,12 +37,25 @@ private[jib] object SbtImageBuild {
     }
 
     try {
-      val targetImage = configuration.targetImageFactory(jibTargetImageCredentialHelper)
-      val taggedImage =
-        additionalTags.foldRight(Containerizer.to(targetImage))((tag, image) => image.withAdditionalTag(tag))
-
+      val targetImage = JibCommon.targetImageFactory(configuration.targetImageReference)(
+        jibTargetImageCredentialHelper,
+        configuration.credsForHost,
+        configuration.logEvent
+      )
+      val taggedImage = Containerizer.to(targetImage)
+      JibCommon.configureContainerizer(taggedImage)(
+        additionalTags,
+        configuration.allowInsecureRegistries,
+        configuration.USER_AGENT_SUFFIX,
+        targetDirectory
+      )
+      val baseImage = JibCommon.baseImageFactory(configuration.baseImageReference)(
+        jibBaseImageCredentialHelper,
+        configuration.credsForHost,
+        configuration.logEvent
+      )
       val container = Jib
-        .from(configuration.baseImageFactory(jibBaseImageCredentialHelper))
+        .from(baseImage)
         .setFileEntriesLayers(configuration.getLayerConfigurations)
         .setEnvironment(environment.asJava)
         .setPlatforms(platforms.asJava)
@@ -53,9 +66,9 @@ private[jib] object SbtImageBuild {
         .setEntrypoint(configuration.entrypoint(jvmFlags, entrypoint))
         .setExposedPorts((tcpPorts.toSet.map(s => Port.tcp(s)) ++ udpPorts.toSet.map(s => Port.udp(s))).asJava)
         .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
-        .containerize(configuration.configureContainerizer(taggedImage))
+        .containerize(taggedImage)
 
-      SbtJibHelper.writeJibOutputFiles(targetDirectory, container)
+      JibCommon.writeJibOutputFiles(container)(targetDirectory)
 
       logger.success("image successfully created & uploaded")
       configuration.targetImageReference
