@@ -3,7 +3,7 @@ package de.gccc.jib
 import com.google.cloud.tools.jib.api.buildplan._
 import com.google.cloud.tools.jib.api.{ Containerizer, JavaContainerBuilder }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
-import sbt.internal.util.ManagedLogger
+import de.gccc.jib.common.JibCommon
 
 import java.io.File
 
@@ -26,7 +26,6 @@ private[jib] object SbtJibHelper {
 
   def javaBuild(
       targetDirectory: File,
-      logger: ManagedLogger,
       configuration: SbtConfiguration,
       jibBaseImageCredentialHelper: Option[String],
       jvmFlags: List[String],
@@ -54,18 +53,20 @@ private[jib] object SbtJibHelper {
       additionalTags,
       configuration.allowInsecureRegistries,
       configuration.USER_AGENT_SUFFIX,
-      configuration.target
+      configuration.target.toPath
     )
-    val builder = JibCommon
-      .prepareJavaContainerBuilder(JavaContainerBuilder.from(baseImage))(
-        configuration.layerConfigurations,
-        Some(configuration.pickedMainClass),
-        jvmFlags,
-        logger.warn(_)
-      )
-      .toContainerBuilder
+    val builder = JavaContainerBuilder.from(baseImage)
+    JibCommon.prepareJavaContainerBuilder(builder)(
+      configuration.layerConfigurations.external.map(_.data.toPath).toList,
+      configuration.layerConfigurations.addToClasspath.map(_.toPath),
+      configuration.layerConfigurations.internalDependencies.map(_.data.toPath).toList,
+      configuration.layerConfigurations.resourceDirectories.map(_.toPath).toList,
+      configuration.layerConfigurations.classes.map(_.toPath).toList,
+      Some(configuration.pickedMainClass),
+      jvmFlags
+    )
     val container = JibCommon
-      .prepareJibContainerBuilder(builder)(
+      .prepareJibContainerBuilder(builder.toContainerBuilder)(
         tcpPorts.toSet.map(s => Port.tcp(s)) ++ udpPorts.toSet.map(s => Port.udp(s)),
         args,
         internalImageFormat,
@@ -77,6 +78,6 @@ private[jib] object SbtJibHelper {
       )
       .containerize(containerizer)
 
-    JibCommon.writeJibOutputFiles(container)(targetDirectory)
+    JibCommon.writeJibOutputFiles(container)(targetDirectory.toPath)
   }
 }

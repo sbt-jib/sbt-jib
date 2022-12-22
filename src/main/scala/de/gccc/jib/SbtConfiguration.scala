@@ -3,6 +3,7 @@ package de.gccc.jib
 import com.google.cloud.tools.jib.api.buildplan.{ AbsoluteUnixPath, FileEntriesLayer }
 import com.google.cloud.tools.jib.api.{ ImageReference, LogEvent }
 import com.google.common.collect.ImmutableList
+import de.gccc.jib.common.JibCommon
 import sbt.librarymanagement.ivy.Credentials
 import sbt.util.{ Level, Logger }
 

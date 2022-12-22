@@ -3,6 +3,7 @@ package de.gccc.jib
 import com.google.cloud.tools.jib.api.{ Containerizer, ImageReference, Jib, TarImage }
 import com.google.cloud.tools.jib.api.buildplan.{ ImageFormat, Port }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
+import de.gccc.jib.common.JibCommon
 import sbt.internal.util.ManagedLogger
 
 import java.io.File
@@ -42,7 +43,7 @@ private[jib] object SbtTarImageBuild {
         additionalTags,
         configuration.allowInsecureRegistries,
         configuration.USER_AGENT_SUFFIX,
-        targetDirectory
+        targetDirectory.toPath
       )
       val baseImage = JibCommon.baseImageFactory(configuration.baseImageReference)(
         jibBaseImageCredentialHelper,
@@ -59,10 +60,10 @@ private[jib] object SbtTarImageBuild {
         .setFormat(internalImageFormat)
         .setEntrypoint(configuration.entrypoint(jvmFlags, entrypoint))
         .setExposedPorts((tcpPorts.toSet.map(s => Port.tcp(s)) ++ udpPorts.toSet.map(s => Port.udp(s))).asJava)
-        .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
+        .setCreationTime(JibCommon.useCurrentTimestamp(useCurrentTimestamp))
         .containerize(taggedImage)
 
-      JibCommon.writeJibOutputFiles(container)(targetDirectory)
+      JibCommon.writeJibOutputFiles(container)(targetDirectory.toPath)
 
       logger.success("image successfully created & uploaded")
     } catch {

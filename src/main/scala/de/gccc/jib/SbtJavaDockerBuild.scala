@@ -35,7 +35,6 @@ private[jib] object SbtJavaDockerBuild {
       val containerizer = Containerizer.to(targetImage)
       SbtJibHelper.javaBuild(
         targetDirectory,
-        logger,
         configuration,
         jibBaseImageCredentialHelper,
         jvmFlags,

@@ -3,6 +3,7 @@ package de.gccc.jib
 import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, ImageReference, Jib }
 import com.google.cloud.tools.jib.api.buildplan.{ ImageFormat, Platform, Port }
 import com.google.cloud.tools.jib.docker.CliDockerClient
+import de.gccc.jib.common.JibCommon
 import sbt.internal.util.ManagedLogger
 
 import java.io.File
@@ -39,7 +40,7 @@ private[jib] object SbtDockerBuild {
         additionalTags,
         configuration.allowInsecureRegistries,
         configuration.USER_AGENT_SUFFIX,
-        targetDirectory
+        targetDirectory.toPath
       )
       val baseImage = JibCommon.baseImageFactory(configuration.baseImageReference)(
         jibBaseImageCredentialHelper,
@@ -57,10 +58,10 @@ private[jib] object SbtDockerBuild {
         .setFormat(ImageFormat.Docker)
         .setEntrypoint(configuration.entrypoint(jvmFlags, entryPoint))
         .setExposedPorts((tcpPorts.toSet.map(s => Port.tcp(s)) ++ (udpPorts.toSet.map(s => Port.udp(s)))).asJava)
-        .setCreationTime(TimestampHelper.useCurrentTimestamp(useCurrentTimestamp))
+        .setCreationTime(JibCommon.useCurrentTimestamp(useCurrentTimestamp))
         .containerize(taggedImage)
 
-      JibCommon.writeJibOutputFiles(container)(targetDirectory)
+      JibCommon.writeJibOutputFiles(container)(targetDirectory.toPath)
 
       logger.success("image successfully created & uploaded")
       configuration.targetImageReference
