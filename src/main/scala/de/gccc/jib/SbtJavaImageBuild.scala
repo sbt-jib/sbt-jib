@@ -1,9 +1,9 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.api.buildplan._
 import com.google.cloud.tools.jib.api._
+import com.google.cloud.tools.jib.api.buildplan._
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
-import sbt.Credentials
+import de.gccc.jib.common.JibCommon
 import sbt.internal.util.ManagedLogger
 
 import java.io.File
@@ -33,12 +33,11 @@ private[jib] object SbtJavaImageBuild {
       val targetImage = JibCommon.targetImageFactory(configuration.targetImageReference)(
         jibTargetImageCredentialHelper,
         configuration.credsForHost,
-        _ => ()
+        configuration.logEvent
       )
       val containerizer = Containerizer.to(targetImage)
       SbtJibHelper.javaBuild(
         targetDirectory,
-        logger,
         configuration,
         jibBaseImageCredentialHelper,
         jvmFlags,
