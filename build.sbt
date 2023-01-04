@@ -5,10 +5,10 @@ sonatypeProjectHosting := Some(GitHubHosting("sbt-jib", "sbt-jib", "c.schmitt@br
 
 inThisBuild(
   Seq(
-    scalaVersion           := "2.12.15",
-    organization           := "de.gccc.sbt",
-    homepage               := Some(url("https://github.com/schmitch")),
-    licenses               := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
+    scalaVersion := "2.12.15",
+    organization := "de.gccc.sbt",
+    homepage     := Some(url("https://github.com/schmitch")),
+    licenses     := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
     developers := List(
       Developer(
         id = "schmitch",
