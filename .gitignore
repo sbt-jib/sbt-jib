@@ -12,3 +12,5 @@ project/plugins/project/
 .lib/
 .idea/
 .bsp/
+.vscode
+.metals
