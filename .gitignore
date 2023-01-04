@@ -14,3 +14,7 @@ project/plugins/project/
 .bsp/
 .vscode
 .metals
+.bloop
+project/metals.sbt
+project/project/
+.DS_Store
