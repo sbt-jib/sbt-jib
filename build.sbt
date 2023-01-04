@@ -1,13 +1,14 @@
 import xerial.sbt.Sonatype._
 
+sonatypeProfileName    := "de.gccc"
+sonatypeProjectHosting := Some(GitHubHosting("sbt-jib", "sbt-jib", "c.schmitt@briefdomain.de"))
+
 inThisBuild(
   Seq(
     scalaVersion           := "2.12.15",
     organization           := "de.gccc.sbt",
-    sonatypeProfileName    := "de.gccc",
     homepage               := Some(url("https://github.com/schmitch")),
     licenses               := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
-    sonatypeProjectHosting := Some(GitHubHosting("sbt-jib", "sbt-jib", "c.schmitt@briefdomain.de")),
     developers := List(
       Developer(
         id = "schmitch",
