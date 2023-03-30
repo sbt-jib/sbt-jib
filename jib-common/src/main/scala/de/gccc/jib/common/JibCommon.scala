@@ -10,8 +10,7 @@ import java.nio.file.{ Files, Path }
 import java.time.Instant
 import java.util.Optional
 import scala.jdk.CollectionConverters._
-import scala.compat.java8.FunctionConverters._
-import scala.compat.java8.OptionConverters._
+import scala.jdk.OptionConverters.RichOption
 import scala.language.postfixOps
 
 object JibCommon {
@@ -34,7 +33,7 @@ object JibCommon {
     resourceFilesDirectories.filter(_.toFile.exists).foreach(builder.addResources)
     classFilesDirectories
       .filter(_.toFile.exists)
-      .foreach(builder.addClasses(_, ((p: Path) => p.toString.endsWith(".class")).asJava))
+      .foreach(builder.addClasses(_, (p: Path) => p.toString.endsWith(".class")))
     builder.setMainClass(mainClass.orNull)
     builder.addJvmFlags(jvmFlags.asJava)
   }
@@ -66,7 +65,7 @@ object JibCommon {
       logger: LogEvent => Unit
   ): RegistryImage = {
     val image                      = RegistryImage.named(imageReference)
-    val factory                    = CredentialRetrieverFactory.forImage(imageReference, logger.asJava)
+    val factory                    = CredentialRetrieverFactory.forImage(imageReference, e => logger(e))
     val (usernameEnv, passwordEnv) = credentialsEnv
 
     image.addCredentialRetriever(retrieveEnvCredentials(usernameEnv, passwordEnv))
@@ -89,7 +88,7 @@ object JibCommon {
           username <- sys.env.get(usernameEnv)
           password <- sys.env.get(passwordEnv)
         } yield Credential.from(username, password)
-        option.asJava
+        option.toJava
       }
     }
 
@@ -99,7 +98,7 @@ object JibCommon {
   ): CredentialRetriever = new CredentialRetriever {
     def retrieve(): Optional[Credential] = {
       val option = credsForHost(imageReference.getRegistry).map(Credential.from _ tupled)
-      option.asJava
+      option.toJava
     }
   }
 
