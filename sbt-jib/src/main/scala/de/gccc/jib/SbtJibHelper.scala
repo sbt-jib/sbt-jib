@@ -55,8 +55,8 @@ private[jib] object SbtJibHelper {
       configuration.USER_AGENT_SUFFIX,
       configuration.target.toPath
     )
-    val builder = JavaContainerBuilder.from(baseImage)
-    JibCommon.prepareJavaContainerBuilder(builder)(
+    val javaBuilder = JavaContainerBuilder.from(baseImage)
+    JibCommon.prepareJavaContainerBuilder(javaBuilder)(
       configuration.layerConfigurations.external.map(_.data.toPath).toList,
       configuration.layerConfigurations.addToClasspath.map(_.toPath),
       configuration.layerConfigurations.internalDependencies.map(_.data.toPath).toList,
@@ -65,18 +65,19 @@ private[jib] object SbtJibHelper {
       Some(configuration.pickedMainClass),
       jvmFlags
     )
-    val container = JibCommon
-      .prepareJibContainerBuilder(builder.toContainerBuilder)(
-        tcpPorts.toSet.map(s => Port.tcp(s)) ++ udpPorts.toSet.map(s => Port.udp(s)),
-        args,
-        internalImageFormat,
-        environment,
-        labels,
-        user,
-        useCurrentTimestamp,
-        platforms
-      )
-      .containerize(containerizer)
+    val jibBuilder = javaBuilder.toContainerBuilder
+    JibCommon.prepareJibContainerBuilder(jibBuilder)(
+      tcpPorts.toSet.map(s => Port.tcp(s)) ++ udpPorts.toSet.map(s => Port.udp(s)),
+      args,
+      internalImageFormat,
+      environment,
+      labels,
+      user,
+      useCurrentTimestamp,
+      platforms,
+      None
+    )
+    val container = jibBuilder.containerize(containerizer)
 
     JibCommon.writeJibOutputFiles(container)(targetDirectory.toPath)
   }

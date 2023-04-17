@@ -46,16 +46,19 @@ object JibCommon {
       labels: Map[String, String],
       user: Option[String],
       useCurrentTimestamp: Boolean,
-      platforms: Set[Platform]
-  ): JibContainerBuilder = builder
-    .setEnvironment(environment.asJava)
-    .setPlatforms(platforms.asJava)
-    .setLabels(labels.asJava)
-    .setUser(user.orNull)
-    .setProgramArguments(args.asJava)
-    .setFormat(internalImageFormat)
-    .setExposedPorts(ports.asJava)
-    .setCreationTime(this.useCurrentTimestamp(useCurrentTimestamp))
+      platforms: Set[Platform],
+      entrypoint: Option[List[String]]
+  ): Unit = {
+    builder.setEnvironment(environment.asJava)
+    builder.setPlatforms(platforms.asJava)
+    builder.setLabels(labels.asJava)
+    builder.setUser(user.orNull)
+    builder.setProgramArguments(args.asJava)
+    builder.setFormat(internalImageFormat)
+    builder.setExposedPorts(ports.asJava)
+    builder.setCreationTime(this.useCurrentTimestamp(useCurrentTimestamp))
+    entrypoint.foreach(entrypoint => builder.setEntrypoint(entrypoint.asJava))
+  }
 
   private def imageFactory(
       imageReference: ImageReference,
