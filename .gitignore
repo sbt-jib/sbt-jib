@@ -12,3 +12,9 @@ project/plugins/project/
 .lib/
 .idea/
 .bsp/
+.vscode
+.metals
+.bloop
+project/metals.sbt
+project/project/
+.DS_Store
