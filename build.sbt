@@ -5,7 +5,7 @@ sonatypeProjectHosting := Some(GitHubHosting("sbt-jib", "sbt-jib", "c.schmitt@br
 
 inThisBuild(
   Seq(
-    scalaVersion := "2.12.15",
+    scalaVersion := "2.12.17",
     organization := "de.gccc.sbt",
     homepage     := Some(url("https://github.com/schmitch")),
     licenses     := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
@@ -16,17 +16,15 @@ inThisBuild(
         email = "c.schmitt@briefdomain.de",
         url = url("https://github.com/schmitch")
       )
-    ),
-    Compile / scalacOptions ++= Seq("-target:jvm-1.8"),
-    Compile / Keys.compile / javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
+    )
   )
 )
 
 lazy val jibCommon = (project in file("jib-common")).settings(
   name               := "jib-common",
-  crossScalaVersions := List(scalaVersion.value, "2.11.12", "2.13.10", "3.2.1"),
+  crossScalaVersions := List(scalaVersion.value, "2.11.12", "2.13.10", "3.3.0"),
   libraryDependencies ++= List(
-    "com.google.cloud.tools"  % "jib-core"                % "0.23.0",
+    "com.google.cloud.tools"  % "jib-core"                % "0.24.0",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.9.0"
   )
 )

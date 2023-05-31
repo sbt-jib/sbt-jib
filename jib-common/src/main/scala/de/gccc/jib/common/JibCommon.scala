@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{ Files, Path }
 import java.time.Instant
 import java.util.Optional
+import java.util.function._
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters.RichOption
 import scala.language.postfixOps
@@ -31,9 +32,8 @@ object JibCommon {
     builder.addToClasspath(otherFilesToClasspath.asJava)
     builder.addProjectDependencies(internalDependencies.asJava)
     resourceFilesDirectories.filter(_.toFile.exists).foreach(builder.addResources)
-    classFilesDirectories
-      .filter(_.toFile.exists)
-      .foreach(builder.addClasses(_, (p: Path) => p.toString.endsWith(".class")))
+    val predicate = new Predicate[Path] { def test(p: Path): Boolean = p.toString.endsWith(".class") }
+    classFilesDirectories.filter(_.toFile.exists).foreach(builder.addClasses(_, predicate))
     builder.setMainClass(mainClass.orNull)
     builder.addJvmFlags(jvmFlags.asJava)
   }
@@ -68,7 +68,8 @@ object JibCommon {
       logger: LogEvent => Unit
   ): RegistryImage = {
     val image                      = RegistryImage.named(imageReference)
-    val factory                    = CredentialRetrieverFactory.forImage(imageReference, e => logger(e))
+    val loggerJava                 = new Consumer[LogEvent] { def accept(e: LogEvent): Unit = logger(e) }
+    val factory                    = CredentialRetrieverFactory.forImage(imageReference, loggerJava)
     val (usernameEnv, passwordEnv) = credentialsEnv
 
     image.addCredentialRetriever(retrieveEnvCredentials(usernameEnv, passwordEnv))
