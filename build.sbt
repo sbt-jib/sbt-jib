@@ -24,7 +24,7 @@ lazy val jibCommon = (project in file("jib-common")).settings(
   name               := "jib-common",
   crossScalaVersions := List(scalaVersion.value, "2.11.12", "2.13.10", "3.3.0"),
   libraryDependencies ++= List(
-    "com.google.cloud.tools"  % "jib-core"                % "0.24.0",
+    "com.google.cloud.tools"  % "jib-core"                % "0.27.0",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.9.0"
   )
 )
