@@ -2,6 +2,23 @@
 
 This project tries to make a sbt plugin for the awesome [jib](https://github.com/GoogleContainerTools/jib) project from google.
 
+
+## Usage
+
+Add the following lines in `project/plugins.sbt`:
+
+```scala
+addSbtPlugin("de.gccc.sbt" % "sbt-jib" % "<sbt-jib-version>")
+libraryDependencies += "com.google.cloud.tools" % "jib-core"" % "<jib-core-version>"
+```
+
+You can find the latest `jib-core` version [in their release list](https://github.com/GoogleContainerTools/jib/releases).
+
+| `sbt-jib` | `jib-core` |
+| :---: | :---: |
+| ![sbt-jib badge](https://maven-badges.herokuapp.com/maven-central/de.gccc.sbt/sbt-jib/badge.svg) | ![jib-core badge](https://maven-badges.herokuapp.com/maven-central/com.google.cloud.tools/jib-core/badge.svg) |
+
+
 ## settings
     
 | name                               | type                 | description                                                                                                                                    |
