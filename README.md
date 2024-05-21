@@ -9,7 +9,7 @@ Add the following lines in `project/plugins.sbt`:
 
 ```scala
 addSbtPlugin("de.gccc.sbt" % "sbt-jib" % "<sbt-jib-version>")
-libraryDependencies += "com.google.cloud.tools" % "jib-core"" % "<jib-core-version>"
+libraryDependencies += "com.google.cloud.tools" % "jib-core" % "<jib-core-version>"
 ```
 
 You can find the latest `jib-core` version [in their release list](https://github.com/GoogleContainerTools/jib/releases).
