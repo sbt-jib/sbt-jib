@@ -85,13 +85,21 @@ private[jib] class SbtConfiguration(
     }
   }
 
-  def entrypoint(jvmFlags: List[String], entrypoint: Option[List[String]]): java.util.List[String] = {
-    entrypoint match {
-      case Some(list) => list.asJava
-      case None =>
+  def entrypoint(jvmFlags: List[String], entrypoint: List[String]): java.util.List[String] = {
+    if (entrypoint.nonEmpty) {
+      entrypoint.asJava
+    } else {
         val appRoot = AbsoluteUnixPath.get("/app")
         JavaEntrypointConstructor.makeDefaultEntrypoint(appRoot, jvmFlags.asJava, pickedMainClass)
     }
+  }
+
+  def volumes(volumes: List[String]): java.util.Set[AbsoluteUnixPath] = {
+    volumes.map(v => AbsoluteUnixPath.get(v)).toSet.asJava
+  }
+
+  def workingDirectory(workingDirectory: Option[String]): AbsoluteUnixPath = {
+    workingDirectory.map(wd => AbsoluteUnixPath.get(wd)).orNull
   }
 
 }

@@ -27,7 +27,9 @@ private[jib] object SbtJavaImageBuild {
       additionalTags: List[String],
       user: Option[String],
       useCurrentTimestamp: Boolean,
-      platforms: Set[Platform]
+      platforms: Set[Platform],
+      volumes: List[String],
+      workingDirectory: Option[String]
   ): ImageReference =
     try {
       val targetImage = JibCommon.targetImageFactory(configuration.targetImageReference)(
@@ -50,7 +52,9 @@ private[jib] object SbtJavaImageBuild {
         additionalTags,
         user,
         useCurrentTimestamp,
-        platforms
+        platforms,
+        volumes,
+        workingDirectory
       )(containerizer)
       logger.success("java image successfully created & uploaded")
       configuration.targetImageReference

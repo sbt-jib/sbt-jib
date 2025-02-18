@@ -6,7 +6,7 @@ import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory
 import com.google.cloud.tools.jib.global.JibSystemProperties
 
 import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.{ Files, Path }
+import java.nio.file.{Files, Path, Paths}
 import java.time.Instant
 import java.util.Optional
 import java.util.function._
@@ -47,7 +47,9 @@ object JibCommon {
       user: Option[String],
       useCurrentTimestamp: Boolean,
       platforms: Set[Platform],
-      entrypoint: Option[List[String]]
+      entrypoint: List[String],
+      volumes: List[String],
+      workingDirectory: Option[String]
   ): Unit = {
     builder.setEnvironment(environment.asJava)
     builder.setPlatforms(platforms.asJava)
@@ -57,7 +59,9 @@ object JibCommon {
     builder.setFormat(internalImageFormat)
     builder.setExposedPorts(ports.asJava)
     builder.setCreationTime(this.useCurrentTimestamp(useCurrentTimestamp))
-    entrypoint.foreach(entrypoint => builder.setEntrypoint(entrypoint.asJava))
+    builder.setVolumes(volumes.map(v => AbsoluteUnixPath.get(v)).toSet.asJava)
+    builder.setWorkingDirectory(workingDirectory.map(wd => AbsoluteUnixPath.get(wd)).orNull)
+    builder.setEntrypoint(entrypoint.asJava)
   }
 
   private def imageFactory(
