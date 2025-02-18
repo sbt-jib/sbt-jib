@@ -21,13 +21,15 @@ private[jib] object SbtDockerBuild {
       tcpPorts: List[Int],
       udpPorts: List[Int],
       args: List[String],
-      entryPoint: Option[List[String]],
+      entryPoint: List[String],
       environment: Map[String, String],
       labels: Map[String, String],
       additionalTags: List[String],
       user: Option[String],
       useCurrentTimestamp: Boolean,
-      platforms: Set[Platform]
+      platforms: Set[Platform],
+      volumes: List[String],
+      workingDirectory: Option[String]
   ): ImageReference = {
     if (!CliDockerClient.isDefaultDockerInstalled) {
       throw new Exception("Build to Docker daemon failed")
@@ -57,8 +59,10 @@ private[jib] object SbtDockerBuild {
         .setProgramArguments(args.asJava)
         .setFormat(ImageFormat.Docker)
         .setEntrypoint(configuration.entrypoint(jvmFlags, entryPoint))
-        .setExposedPorts((tcpPorts.toSet.map(s => Port.tcp(s)) ++ (udpPorts.toSet.map(s => Port.udp(s)))).asJava)
+        .setExposedPorts((tcpPorts.toSet.map(s => Port.tcp(s)) ++ udpPorts.toSet.map(s => Port.udp(s))).asJava)
         .setCreationTime(JibCommon.useCurrentTimestamp(useCurrentTimestamp))
+        .setVolumes(configuration.volumes(volumes))
+        .setWorkingDirectory(configuration.workingDirectory(workingDirectory))
         .containerize(taggedImage)
 
       JibCommon.writeJibOutputFiles(container)(targetDirectory.toPath)

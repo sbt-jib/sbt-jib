@@ -25,7 +25,9 @@ private[jib] object SbtJavaDockerBuild {
       additionalTags: List[String],
       user: Option[String],
       useCurrentTimestamp: Boolean,
-      platforms: Set[Platform]
+      platforms: Set[Platform],
+      volumes: List[String],
+      workingDirectory: Option[String]
   ): ImageReference = {
     if (!CliDockerClient.isDefaultDockerInstalled) {
       throw new Exception("Build to Docker daemon failed")
@@ -47,7 +49,9 @@ private[jib] object SbtJavaDockerBuild {
         additionalTags,
         user,
         useCurrentTimestamp,
-        platforms
+        platforms,
+        volumes,
+        workingDirectory
       )(containerizer)
       logger.success("java image successfully created & uploaded")
       configuration.targetImageReference

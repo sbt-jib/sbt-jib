@@ -1,7 +1,7 @@
 package de.gccc.jib
 
 import com.google.cloud.tools.jib.api.{ Containerizer, ImageReference, Jib, TarImage }
-import com.google.cloud.tools.jib.api.buildplan.{ ImageFormat, Port }
+import com.google.cloud.tools.jib.api.buildplan.{ AbsoluteUnixPath, ImageFormat, Port }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import de.gccc.jib.common.JibCommon
 import sbt.internal.util.ManagedLogger
@@ -21,13 +21,15 @@ private[jib] object SbtTarImageBuild {
       tcpPorts: List[Int],
       udpPorts: List[Int],
       args: List[String],
-      entrypoint: Option[List[String]],
+      entrypoint: List[String],
       imageFormat: JibImageFormat,
       environment: Map[String, String],
       labels: Map[String, String],
       additionalTags: List[String],
       user: Option[String],
-      useCurrentTimestamp: Boolean
+      useCurrentTimestamp: Boolean,
+      volumes: List[String],
+      workingDirectory: Option[String]
   ): Unit = {
     val internalImageFormat = imageFormat match {
       case JibImageFormat.Docker => ImageFormat.Docker
@@ -61,6 +63,8 @@ private[jib] object SbtTarImageBuild {
         .setEntrypoint(configuration.entrypoint(jvmFlags, entrypoint))
         .setExposedPorts((tcpPorts.toSet.map(s => Port.tcp(s)) ++ udpPorts.toSet.map(s => Port.udp(s))).asJava)
         .setCreationTime(JibCommon.useCurrentTimestamp(useCurrentTimestamp))
+        .setVolumes(volumes.map(v => AbsoluteUnixPath.get(v)).toSet.asJava)
+        .setWorkingDirectory(workingDirectory.map(wd => AbsoluteUnixPath.get(wd)).orNull)
         .containerize(taggedImage)
 
       JibCommon.writeJibOutputFiles(container)(targetDirectory.toPath)
