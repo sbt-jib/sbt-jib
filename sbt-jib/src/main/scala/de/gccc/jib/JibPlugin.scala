@@ -2,7 +2,7 @@ package de.gccc.jib
 
 import java.nio.file.Files
 import com.google.cloud.tools.jib.api.ImageReference
-import com.google.cloud.tools.jib.api.buildplan.{ FileEntriesLayer, Platform }
+import com.google.cloud.tools.jib.api.buildplan.Platform
 import sbt._
 import sbt.Keys._
 import complete.DefaultParsers._
@@ -21,9 +21,11 @@ object JibPlugin extends AutoPlugin {
     }
 
     sealed trait JibImageFormat
+
     object JibImageFormat {
       case object Docker extends JibImageFormat
-      case object OCI    extends JibImageFormat
+
+      case object OCI extends JibImageFormat
     }
 
     val jibBaseImage = settingKey[String]("jib base image")
@@ -64,6 +66,10 @@ object JibPlugin extends AutoPlugin {
     )
     val jibExtraMappings =
       taskKey[Seq[(File, String)]]("jib extra file mappings / i.e. java agents (see above for formatting)")
+    val jibExtraMappingPermissions =
+      taskKey[Seq[(Glob, String)]](
+        "jib extra files permissions / file paths (glob patterns) on container to Unix permissions."
+      )
     val jibUseCurrentTimestamp =
       settingKey[Boolean]("jib use current timestamp for image creation time. Default to Epoch")
     val jibCustomRepositoryPath = settingKey[Option[String]]("jib custom repository path freeform path structure")
@@ -100,6 +106,7 @@ object JibPlugin extends AutoPlugin {
     JibExtra / mappings            := Nil,
     jibMappings                    := (Jib / mappings).value,
     jibExtraMappings               := (JibExtra / mappings).value,
+    jibExtraMappingPermissions     := Nil,
     jibJavaAddToClasspath          := Nil,
     jibUseCurrentTimestamp         := false,
     jibCustomRepositoryPath        := None,
@@ -123,6 +130,7 @@ object JibPlugin extends AutoPlugin {
         (Compile / internalDependencyAsJars).value,
         (externalDependencyClasspath or (Runtime / externalDependencyClasspath)).value,
         jibExtraMappings.value,
+        jibExtraMappingPermissions.value,
         staged,
         jibMappings.value,
         jibJavaAddToClasspath.value
