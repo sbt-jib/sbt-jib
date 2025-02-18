@@ -6,7 +6,7 @@ import com.google.cloud.tools.jib.frontend.CredentialRetrieverFactory
 import com.google.cloud.tools.jib.global.JibSystemProperties
 
 import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{ Files, Path }
 import java.time.Instant
 import java.util.Optional
 import java.util.function._

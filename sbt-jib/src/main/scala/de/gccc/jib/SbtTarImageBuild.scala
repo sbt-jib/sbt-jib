@@ -1,7 +1,7 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.api.{Containerizer, ImageReference, Jib, TarImage}
-import com.google.cloud.tools.jib.api.buildplan.{AbsoluteUnixPath, ImageFormat, Port}
+import com.google.cloud.tools.jib.api.{ Containerizer, ImageReference, Jib, TarImage }
+import com.google.cloud.tools.jib.api.buildplan.{ AbsoluteUnixPath, ImageFormat, Port }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import de.gccc.jib.common.JibCommon
 import sbt.internal.util.ManagedLogger

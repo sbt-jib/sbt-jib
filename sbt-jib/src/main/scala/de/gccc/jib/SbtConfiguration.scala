@@ -89,8 +89,8 @@ private[jib] class SbtConfiguration(
     if (entrypoint.nonEmpty) {
       entrypoint.asJava
     } else {
-        val appRoot = AbsoluteUnixPath.get("/app")
-        JavaEntrypointConstructor.makeDefaultEntrypoint(appRoot, jvmFlags.asJava, pickedMainClass)
+      val appRoot = AbsoluteUnixPath.get("/app")
+      JavaEntrypointConstructor.makeDefaultEntrypoint(appRoot, jvmFlags.asJava, pickedMainClass)
     }
   }
 

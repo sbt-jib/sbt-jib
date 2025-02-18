@@ -67,8 +67,8 @@ object JibPlugin extends AutoPlugin {
     val jibUseCurrentTimestamp =
       settingKey[Boolean]("jib use current timestamp for image creation time. Default to Epoch")
     val jibCustomRepositoryPath = settingKey[Option[String]]("jib custom repository path freeform path structure")
-    val jibVolumes             = settingKey[List[String]]("specifies a list of mount points on the container")
-    val jibWorkingDirectory = settingKey[Option[String]]("specifies the working directory of the container")
+    val jibVolumes              = settingKey[List[String]]("specifies a list of mount points on the container")
+    val jibWorkingDirectory     = settingKey[Option[String]]("specifies the working directory of the container")
 
     private[jib] object Private {
       val sbtLayerConfiguration = taskKey[SbtLayerConfigurations]("jib layer configuration")
