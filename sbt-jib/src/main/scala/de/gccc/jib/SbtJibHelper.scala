@@ -20,11 +20,9 @@ private[jib] object SbtJibHelper {
     val permissions = permissionsForMapping.map { case (glob, permission) =>
       (glob, FilePermissions.fromOctalString(permission))
     }
-
     def permissionOfPath(pathOnImage: String): Option[FilePermissions] = {
       permissions.find { case (glob, _) => glob.matches(Path(pathOnImage).asPath) }.map(_._2)
     }
-
     mappings
       .filter(_._1.isFile) // fixme resolve all directory files
       .map { case (file, fullPathOnImage) => (file.toPath, fullPathOnImage) }

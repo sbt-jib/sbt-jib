@@ -21,11 +21,9 @@ object JibPlugin extends AutoPlugin {
     }
 
     sealed trait JibImageFormat
-
     object JibImageFormat {
       case object Docker extends JibImageFormat
-
-      case object OCI extends JibImageFormat
+      case object OCI    extends JibImageFormat
     }
 
     val jibBaseImage = settingKey[String]("jib base image")
