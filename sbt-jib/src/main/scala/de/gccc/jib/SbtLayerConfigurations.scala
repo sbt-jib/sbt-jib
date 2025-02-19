@@ -12,6 +12,7 @@ private[jib] case class SbtLayerConfigurations(
     internalDependencies: Keys.Classpath,
     external: Keys.Classpath,
     extraMappings: Seq[(File, String)],
+    extraMappingPermissions: Seq[(Glob, String)],
     specialResourceDirectory: File,
     mappings: Seq[(File, String)],
     addToClasspath: List[File]
@@ -42,7 +43,8 @@ private[jib] case class SbtLayerConfigurations(
     }
 
     val extraLayer =
-      if (extraMappings.nonEmpty) SbtJibHelper.mappingsConverter("extra", extraMappings.filter(_._1.isFile)) :: Nil
+      if (extraMappings.nonEmpty)
+        SbtJibHelper.mappingsConverter("extra", extraMappings.filter(_._1.isFile), extraMappingPermissions) :: Nil
       else Nil
 
     val allClasses = classes

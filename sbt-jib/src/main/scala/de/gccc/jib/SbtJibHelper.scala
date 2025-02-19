@@ -4,21 +4,35 @@ import com.google.cloud.tools.jib.api.buildplan._
 import com.google.cloud.tools.jib.api.{ Containerizer, JavaContainerBuilder }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import de.gccc.jib.common.JibCommon
+import sbt.io.Path
+import sbt.nio.file.Glob
 
 import java.io.File
 
 private[jib] object SbtJibHelper {
 
-  def mappingsConverter(name: String, mappings: Seq[(File, String)]): FileEntriesLayer = {
+  def mappingsConverter(
+      name: String,
+      mappings: Seq[(File, String)],
+      permissionsForMapping: Seq[(Glob, String)] = Nil
+  ): FileEntriesLayer = {
     val layerBuilder = FileEntriesLayer.builder()
-
+    val permissions = permissionsForMapping.map { case (glob, permission) =>
+      (glob, FilePermissions.fromOctalString(permission))
+    }
+    def permissionOfPath(pathOnImage: String): Option[FilePermissions] = {
+      permissions.find { case (glob, _) => glob.matches(Path(pathOnImage).asPath) }.map(_._2)
+    }
     mappings
       .filter(_._1.isFile) // fixme resolve all directory files
       .map { case (file, fullPathOnImage) => (file.toPath, fullPathOnImage) }
       .toList
       .sortBy(_._2)
-      .foreach { case (sourceFile, pathOnImage) =>
-        layerBuilder.addEntry(sourceFile, AbsoluteUnixPath.get(pathOnImage))
+      .foreach {
+        case (sourceFile, pathOnImage) if permissionOfPath(pathOnImage).isDefined =>
+          layerBuilder.addEntry(sourceFile, AbsoluteUnixPath.get(pathOnImage), permissionOfPath(pathOnImage).get)
+        case (sourceFile, pathOnImage) =>
+          layerBuilder.addEntry(sourceFile, AbsoluteUnixPath.get(pathOnImage))
       }
 
     layerBuilder.build()
