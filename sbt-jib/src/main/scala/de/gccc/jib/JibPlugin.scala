@@ -33,7 +33,7 @@ object JibPlugin extends AutoPlugin {
     val jibTcpPorts        = settingKey[List[Int]]("jib default Tcp ports")
     val jibUdpPorts        = settingKey[List[Int]]("jib default Udp ports")
     val jibArgs            = settingKey[List[String]]("jib default args")
-    val jibEntrypoint      = settingKey[List[String]]("jib entrypoint")
+    val jibEntrypoint      = settingKey[Option[List[String]]]("jib entrypoint")
     val jibImageFormat     = settingKey[JibImageFormat]("jib default image format")
     val jibDockerBuild     = taskKey[ImageReference]("jib build docker image")
     val jibImageBuild      = taskKey[ImageReference]("jib build image (does not need docker)")
@@ -71,8 +71,6 @@ object JibPlugin extends AutoPlugin {
     val jibUseCurrentTimestamp =
       settingKey[Boolean]("jib use current timestamp for image creation time. Default to Epoch")
     val jibCustomRepositoryPath = settingKey[Option[String]]("jib custom repository path freeform path structure")
-    val jibVolumes              = settingKey[List[String]]("specifies a list of mount points on the container")
-    val jibWorkingDirectory     = settingKey[Option[String]]("specifies the working directory of the container")
 
     private[jib] object Private {
       val sbtLayerConfiguration = taskKey[SbtLayerConfigurations]("jib layer configuration")
@@ -92,7 +90,7 @@ object JibPlugin extends AutoPlugin {
     jibTcpPorts                    := Nil,
     jibUdpPorts                    := Nil,
     jibArgs                        := Nil,
-    jibEntrypoint                  := List.empty,
+    jibEntrypoint                  := None,
     jibImageFormat                 := JibImageFormat.Docker,
     jibRegistry                    := "registry.hub.docker.com",
     jibOrganization                := organization.value,
@@ -113,8 +111,6 @@ object JibPlugin extends AutoPlugin {
     jibTarget                      := target.value / "jib",
     jibAllowInsecureRegistries     := false,
     jibSendCredentialsOverHttp     := false,
-    jibVolumes                     := List.empty,
-    jibWorkingDirectory            := None,
     // private values
     Private.sbtLayerConfiguration := {
       val stageDirectory     = target.value / "stage"
@@ -175,9 +171,7 @@ object JibPlugin extends AutoPlugin {
       jibTags.value,
       jibUser.value,
       jibUseCurrentTimestamp.value,
-      jibPlatforms.value,
-      jibVolumes.value,
-      jibWorkingDirectory.value
+      jibPlatforms.value
     ),
     jibImageBuild := SbtImageBuild.task(
       target.value,
@@ -196,9 +190,7 @@ object JibPlugin extends AutoPlugin {
       jibTags.value,
       jibUser.value,
       jibUseCurrentTimestamp.value,
-      jibPlatforms.value,
-      jibVolumes.value,
-      jibWorkingDirectory.value
+      jibPlatforms.value
     ),
     jibTarImageBuild := {
       spaceDelimited("<path>").parsed.headOption match {
@@ -219,9 +211,7 @@ object JibPlugin extends AutoPlugin {
             jibLabels.value,
             jibTags.value,
             jibUser.value,
-            jibUseCurrentTimestamp.value,
-            jibVolumes.value,
-            jibWorkingDirectory.value
+            jibUseCurrentTimestamp.value
           )
         case None =>
           streams.value.log.error("could not create jib tar image, cause path is not set")
@@ -241,9 +231,7 @@ object JibPlugin extends AutoPlugin {
       jibTags.value,
       jibUser.value,
       jibUseCurrentTimestamp.value,
-      jibPlatforms.value,
-      jibVolumes.value,
-      jibWorkingDirectory.value
+      jibPlatforms.value
     ),
     jibJavaImageBuild := SbtJavaImageBuild.task(
       target.value,
@@ -261,9 +249,7 @@ object JibPlugin extends AutoPlugin {
       jibTags.value,
       jibUser.value,
       jibUseCurrentTimestamp.value,
-      jibPlatforms.value,
-      jibVolumes.value,
-      jibWorkingDirectory.value
+      jibPlatforms.value
     ),
     jibJavaTarImageBuild := {
       spaceDelimited("<path>").parsed.headOption match {
@@ -284,9 +270,7 @@ object JibPlugin extends AutoPlugin {
             jibTags.value,
             jibUser.value,
             jibUseCurrentTimestamp.value,
-            jibPlatforms.value,
-            jibVolumes.value,
-            jibWorkingDirectory.value
+            jibPlatforms.value
           )
         case None =>
           streams.value.log.error("could not create jib java tar image, cause path is not set")

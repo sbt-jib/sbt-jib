@@ -25,9 +25,7 @@ private[jib] object SbtJavaTarImageBuild {
       additionalTags: List[String],
       user: Option[String],
       useCurrentTimestamp: Boolean,
-      platforms: Set[Platform],
-      volumes: List[String],
-      workingDirectory: Option[String]
+      platforms: Set[Platform]
   ): Unit =
     try {
       val targetImage   = TarImage.at(home.toPath).named(configuration.targetImageReference)
@@ -46,9 +44,7 @@ private[jib] object SbtJavaTarImageBuild {
         additionalTags,
         user,
         useCurrentTimestamp,
-        platforms,
-        volumes,
-        workingDirectory
+        platforms
       )(containerizer)
       logger.success("java image successfully created & uploaded")
     } catch {

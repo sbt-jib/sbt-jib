@@ -52,9 +52,7 @@ private[jib] object SbtJibHelper {
       additionalTags: List[String],
       user: Option[String],
       useCurrentTimestamp: Boolean,
-      platforms: Set[Platform],
-      volumes: List[String],
-      workingDirectory: Option[String]
+      platforms: Set[Platform]
   )(containerizer: Containerizer): Unit = {
     val internalImageFormat = imageFormat match {
       case JibImageFormat.Docker => ImageFormat.Docker
@@ -91,9 +89,7 @@ private[jib] object SbtJibHelper {
       user,
       useCurrentTimestamp,
       platforms,
-      List.empty,
-      volumes,
-      workingDirectory
+      None
     )
     val container = jibBuilder.containerize(containerizer)
 
