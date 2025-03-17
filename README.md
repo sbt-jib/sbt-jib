@@ -21,34 +21,32 @@ You can find the latest `jib-core` version [in their release list](https://githu
 
 ## settings
     
-| name                               | type                | description                                                                                                                                    |
-|------------------------------------|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| **jibTarget**                      | Option[File]        | jib work directory                                                                                                                             |
-| **jibBaseImage**                   | String              | jib base image                                                                                                                                 |
-| **jibBaseImageCredentialHelper**   | Option[String]]     | jib base image credential helper cli name (e.g. ecr-login)                                                                                     |
-| **jibJvmFlags**                    | List[String]]       | jib default jvm flags                                                                                                                          |
-| **jibArgs**                        | List[String]]       | jib default args                                                                                                                               |
-| **jibEntrypoint**                  | List[String]        | jib entrypoint                                                                                                                                 |
-| **jibImageFormat**                 | JibImageFormat      | jib default image format                                                                                                                       |
-| **jibTargetImageCredentialHelper** | Option[String]      | jib target image credential helper cli name                                                                                                    |
-| **jibRegistry**                    | String              | jib target image registry (defaults to docker hub)                                                                                             |
-| **jibOrganization**                | String              | jib docker organization (defaults to organization)                                                                                             |
-| **jibName**                        | String              | jib image name (defaults to project name)                                                                                                      |
-| **jibVersion**                     | String              | jib version (defaults to version)                                                                                                              |
-| **jibEnvironment**                 | Map[String, String] | jib docker env variables                                                                                                                       |
-| **jibPlatforms**                   | Set[Platform]       | jib platforms                                                                                                                                  |
-| **jibLabels**                      | Map[String, String] | jib docker labels                                                                                                                              |
-| **jibTcpPorts**                    | List[Int]           | jib docker exposed tcp ports                                                                                                                   |
-| **jibUdpPorts**                    | List[Int]           | jib docker exposed udp ports                                                                                                                   |
-| **jibTags**                        | List[String]        | jib image tags (in addition to jibVersion)                                                                                                     |
-| **jibUser**                        | Option[String]      | jib user and group to run the container as                                                                                                     |
-| **jibVolumes**                     | List[String]        | specifies a list of mount points on the container                                                                                              |
-| **jibWorkingDirectory**            | Option[String]      | the working directory in the container                                                                                                         |
-| **jibMappings**                    | Seq[(File, String)] | jib additional resource mappings, <br>formatted as \<source file resource\> -> \<full path on container\>                                      |
-| **jibExtraMappings**               | Seq[(File, String)] | jib extra file mappings / i.e. java agents <br>(see above for formatting)                                                                      |
-| **jibJavaAddToClasspath**          | List[File]          | Adds other files to the class path when using jibJava*. Serves as replacement for `jibMappings` and `jibExtraMappings` which don't work there. |
-| **jibUseCurrentTimestamp**         | Boolean             | jib use current timestamp for image creation time. Default to Epoch                                                                            |
-| **jibCustomRepositoryPath**        | Option[String]      | jib custom repository path freeform path structure. <br>The default repo structure is organization/name                                        |
+| name                               | type                 | description                                                                                                                                    |
+|------------------------------------|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| **jibTarget**                      | Option[File]         | jib work directory                                                                                                                             |
+| **jibBaseImage**                   | String               | jib base image                                                                                                                                 |
+| **jibBaseImageCredentialHelper**   | Option[String]]      | jib base image credential helper cli name (e.g. ecr-login)                                                                                     |
+| **jibJvmFlags**                    | List[String]]        | jib default jvm flags                                                                                                                          |
+| **jibArgs**                        | List[String]]        | jib default args                                                                                                                               |
+| **jibEntrypoint**                  | Option[List[String]] | jib entrypoint                                                                                                                                 |
+| **jibImageFormat**                 | JibImageFormat       | jib default image format                                                                                                                       |
+| **jibTargetImageCredentialHelper** | Option[String]       | jib target image credential helper cli name                                                                                                    |
+| **jibRegistry**                    | String               | jib target image registry (defaults to docker hub)                                                                                             |
+| **jibOrganization**                | String               | jib docker organization (defaults to organization)                                                                                             |
+| **jibName**                        | String               | jib image name (defaults to project name)                                                                                                      |
+| **jibVersion**                     | String               | jib version (defaults to version)                                                                                                              |
+| **jibEnvironment**                 | Map[String, String]  | jib docker env variables                                                                                                                       |
+| **jibPlatforms**                   | Set[Platform]        | jib platforms                                                                                                                                  |
+| **jibLabels**                      | Map[String, String]  | jib docker labels                                                                                                                              |
+| **jibTcpPorts**                    | List[Int]            | jib docker exposed tcp ports                                                                                                                   |
+| **jibUdpPorts**                    | List[Int]            | jib docker exposed udp ports                                                                                                                   |
+| **jibTags**                        | List[String]         | jib image tags (in addition to jibVersion)                                                                                                     |
+| **jibUser**                        | Option[String]       | jib user and group to run the container as                                                                                                     |
+| **jibMappings**                    | Seq[(File, String)]  | jib additional resource mappings, <br>formatted as \<source file resource\> -> \<full path on container\>                                      |
+| **jibExtraMappings**               | Seq[(File, String)]  | jib extra file mappings / i.e. java agents <br>(see above for formatting)                                                                      |
+| **jibJavaAddToClasspath**          | List[File]           | Adds other files to the class path when using jibJava*. Serves as replacement for `jibMappings` and `jibExtraMappings` which don't work there. |
+| **jibUseCurrentTimestamp**         | Boolean              | jib use current timestamp for image creation time. Default to Epoch                                                                            |
+| **jibCustomRepositoryPath**        | Option[String]       | jib custom repository path freeform path structure. <br>The default repo structure is organization/name                                        |
 
 ## commands
 
