@@ -135,7 +135,8 @@ object JibPlugin extends AutoPlugin {
       )
     },
     Private.sbtConfiguration := {
-      val baseImage = ImageReference.parse(jibBaseImage.value)
+      val rawBaseImage                   = jibBaseImage.value
+      val (isDockerDaemonBase, imageRef) = (rawBaseImage.startsWith("docker://"), rawBaseImage.stripPrefix("docker://"))
 
       new SbtConfiguration(
         sLog.value,
@@ -144,7 +145,7 @@ object JibPlugin extends AutoPlugin {
         (Compile / packageBin / discoveredMainClasses).value,
         jibTarget.value / "internal",
         credentials.value,
-        baseImage,
+        ImageReference.parse(imageRef),
         jibRegistry.value,
         jibOrganization.value,
         jibName.value,
@@ -152,7 +153,8 @@ object JibPlugin extends AutoPlugin {
         jibCustomRepositoryPath.value,
         jibAllowInsecureRegistries.value,
         jibSendCredentialsOverHttp.value,
-        jibTarget.value
+        jibTarget.value,
+        isDockerDaemonBase
       )
 
     },

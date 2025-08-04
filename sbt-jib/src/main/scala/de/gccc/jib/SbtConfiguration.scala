@@ -26,7 +26,8 @@ private[jib] class SbtConfiguration(
     customRepositoryPath: Option[String],
     val allowInsecureRegistries: Boolean,
     sendCredentialsOverHttp: Boolean,
-    val target: File
+    val target: File,
+    val isDockerDaemonBase: Boolean = false
 ) {
 
   val USER_AGENT_SUFFIX = "jib-sbt-plugin"
