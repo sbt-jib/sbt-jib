@@ -1,7 +1,7 @@
 package de.gccc.jib
 
 import com.google.cloud.tools.jib.api.buildplan._
-import com.google.cloud.tools.jib.api.{ Containerizer, JavaContainerBuilder }
+import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, JavaContainerBuilder }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import de.gccc.jib.common.JibCommon
 import sbt.io.Path
@@ -58,18 +58,23 @@ private[jib] object SbtJibHelper {
       case JibImageFormat.Docker => ImageFormat.Docker
       case JibImageFormat.OCI    => ImageFormat.OCI
     }
-    val baseImage = JibCommon.baseImageFactory(configuration.baseImageReference)(
-      jibBaseImageCredentialHelper,
-      configuration.credsForHost,
-      configuration.logEvent
-    )
+    val javaBuilder =
+      if (configuration.isDockerDaemonBase)
+        JavaContainerBuilder.from(DockerDaemonImage.named(configuration.baseImageReference))
+      else
+        JavaContainerBuilder.from(
+          JibCommon.baseImageFactory(configuration.baseImageReference)(
+            jibBaseImageCredentialHelper,
+            configuration.credsForHost,
+            configuration.logEvent
+          )
+        )
     JibCommon.configureContainerizer(containerizer)(
       additionalTags,
       configuration.allowInsecureRegistries,
       configuration.USER_AGENT_SUFFIX,
       configuration.target.toPath
     )
-    val javaBuilder = JavaContainerBuilder.from(baseImage)
     JibCommon.prepareJavaContainerBuilder(javaBuilder)(
       configuration.layerConfigurations.external.map(_.data.toPath).toList,
       configuration.layerConfigurations.addToClasspath.map(_.toPath),
