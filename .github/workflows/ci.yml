@@ -12,8 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java: [ 8, 11, 17 ]
-    runs-on: ubuntu-20.04
+        java: [ 8, 21 ]
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-java@v3
@@ -21,6 +21,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           cache: 'sbt'
+      - uses: sbt/setup-sbt@v1
       - name: Scalafmt
         run: sbt scalafmtCheckAll scalafmtSbtCheck
       - name: Test
@@ -29,7 +30,7 @@ jobs:
         run: sbt +publishLocal
 
   ci:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [ build ]
     steps:
       - name: Aggregate of lint, and all tests
@@ -39,7 +40,7 @@ jobs:
     name: Publish release
     if: github.event_name != 'pull_request'
     needs: [ ci ]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v3
         with:
@@ -49,6 +50,7 @@ jobs:
           distribution: 'temurin'
           java-version: 8
           cache: 'sbt'
+      - uses: sbt/setup-sbt@v1
       - run: sbt ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}

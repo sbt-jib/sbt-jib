@@ -1,11 +1,6 @@
-import xerial.sbt.Sonatype._
-
-sonatypeProfileName    := "de.gccc"
-sonatypeProjectHosting := Some(GitHubHosting("sbt-jib", "sbt-jib", "c.schmitt@briefdomain.de"))
-
 inThisBuild(
   Seq(
-    scalaVersion := "2.12.17",
+    scalaVersion := "2.12.20",
     organization := "de.gccc.sbt",
     homepage     := Some(url("https://github.com/schmitch")),
     licenses     := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
@@ -22,9 +17,9 @@ inThisBuild(
 
 lazy val jibCommon = (project in file("jib-common")).settings(
   name               := "jib-common",
-  crossScalaVersions := List(scalaVersion.value, "2.11.12", "2.13.10", "3.3.0"),
+  crossScalaVersions := List(scalaVersion.value, "2.11.12", "2.13.16", "3.3.6"),
   libraryDependencies ++= List(
-    "com.google.cloud.tools"  % "jib-core"                % "0.27.0",
+    "com.google.cloud.tools"  % "jib-core"                % "0.27.3",
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.9.0"
   )
 )
