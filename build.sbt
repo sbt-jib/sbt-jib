@@ -11,7 +11,8 @@ inThisBuild(
         email = "c.schmitt@briefdomain.de",
         url = url("https://github.com/schmitch")
       )
-    )
+    ),
+    versionScheme := Some("early-semver")
   )
 )
 
