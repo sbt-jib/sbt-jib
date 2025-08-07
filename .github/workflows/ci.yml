@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java: [ 8, 11, 17 ]
+        java: [ 8, 21 ]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v3
@@ -21,6 +21,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           cache: 'sbt'
+      - uses: sbt/setup-sbt@v1
       - name: Scalafmt
         run: sbt scalafmtCheckAll scalafmtSbtCheck
       - name: Test
@@ -49,6 +50,7 @@ jobs:
           distribution: 'temurin'
           java-version: 8
           cache: 'sbt'
+      - uses: sbt/setup-sbt@v1
       - run: sbt ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
