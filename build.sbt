@@ -1,8 +1,3 @@
-import xerial.sbt.Sonatype._
-
-sonatypeProfileName    := "de.gccc"
-sonatypeProjectHosting := Some(GitHubHosting("sbt-jib", "sbt-jib", "c.schmitt@briefdomain.de"))
-
 inThisBuild(
   Seq(
     scalaVersion := "2.12.20",
