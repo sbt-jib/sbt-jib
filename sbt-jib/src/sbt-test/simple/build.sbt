@@ -7,7 +7,7 @@ lazy val root = (project in file("."))
     organization := "schmitch",
     name := "demo-project",
     version := "0.0.2",
-    scalaVersion := "2.12.15",
+    scalaVersion := "2.12.20",
     sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
     mappings in Jib := (baseDirectory.value / "dist" / "x.txt" -> "hase/out.txt") :: Nil
   ).dependsOn(hase).aggregate(hase)
