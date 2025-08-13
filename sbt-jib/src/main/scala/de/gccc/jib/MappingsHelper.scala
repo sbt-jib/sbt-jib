@@ -1,13 +1,17 @@
 package de.gccc.jib
 
+import sbt.{ IO => _, PathFinder => _, *, given }
+import sbt.io.*
+import xsbti.FileConverter
+
 import java.io.File
 
-import sbt._
-import sbt.io.{ IO, PathFinder }
-
-import scala.language.postfixOps
-
-/** A set of helper methods to simplify the writing of mappings */
+/**
+ * A set of helper methods to simplify the writing of mappings.
+ *
+ * @see
+ *   [[https://github.com/sbt/sbt-native-packager/blob/main/src/main/scala/com/typesafe/sbt/packager/MappingsHelper.scala]]
+ */
 object MappingsHelper extends Mapper {
 
   /**
@@ -30,7 +34,7 @@ object MappingsHelper extends Mapper {
    *
    * @example
    *   {{{
-   * mappings in Universal ++= sourceDir("extra")
+   * mappings in Universal ++= contentOf("extra")
    *   }}}
    *
    * @param sourceDir
@@ -41,20 +45,22 @@ object MappingsHelper extends Mapper {
   def contentOf(sourceDir: String): Seq[(File, String)] =
     contentOf(file(sourceDir))
 
-  def contentOf(baseDirectory: File, target: String): Seq[(File, String)] = {
+  def contentOf(baseDirectory: File, target: String)(implicit
+      conv: FileConverter
+  ): Seq[(PluginCompat.FileRef, String)] =
     contentOf(baseDirectory, target, (_: File) => true)
-  }
 
   def contentOf(
       baseDirectory: File,
       target: String,
       filter: File => Boolean
-  ): Seq[(File, String)] = {
+  )(implicit conv: FileConverter): Seq[(PluginCompat.FileRef, String)] = {
     (PathFinder(baseDirectory).allPaths --- PathFinder(baseDirectory))
       .filter(filter)
-      .pair((f: File) => {
+      .pair { (f: File) =>
         IO.relativize(baseDirectory, f).map(p => target.stripSuffix("/") + "/" + p)
-      })
+      }
+      .map { case (f, s) => PluginCompat.toFileRef(f) -> s }
   }
 
   /**
@@ -71,7 +77,10 @@ object MappingsHelper extends Mapper {
    * @return
    *   a list of mappings
    */
-  def fromClasspath(entries: Seq[Attributed[File]], target: String): Seq[(File, String)] =
+  def fromClasspath(
+      entries: Seq[Attributed[PluginCompat.FileRef]],
+      target: String
+  ): Seq[(PluginCompat.FileRef, String)] =
     fromClasspath(entries, target, _ => true)
 
   /**
@@ -98,15 +107,15 @@ object MappingsHelper extends Mapper {
    *   default is false. When there's no Artifact meta data remove it
    */
   def fromClasspath(
-      entries: Seq[Attributed[File]],
+      entries: Seq[Attributed[PluginCompat.FileRef]],
       target: String,
-      includeArtifact: Artifact => Boolean,
+      includeArtifact: PluginCompat.IncludeArtifact,
       includeOnNoArtifact: Boolean = false
-  ): Seq[(File, String)] =
-    entries.filter(attr => attr.get(sbt.Keys.artifact.key) map includeArtifact getOrElse includeOnNoArtifact).map {
+  ): Seq[(PluginCompat.FileRef, String)] =
+    entries.filter(attr => attr.get(PluginCompat.artifactStr).map(includeArtifact) getOrElse includeOnNoArtifact).map {
       attribute =>
         val file = attribute.data
-        file -> s"$target/${file.getName}"
+        val name = PluginCompat.getName(file)
+        file -> s"$target/$name"
     }
-
 }

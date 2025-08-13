@@ -101,8 +101,9 @@ object JibCommon {
       credsForHost: String => Option[(String, String)]
   ): CredentialRetriever = new CredentialRetriever {
     def retrieve(): Optional[Credential] = {
-      val option = credsForHost(imageReference.getRegistry).map(Credential.from _ tupled)
-      option.toJava
+      credsForHost(imageReference.getRegistry).map { case (username, password) =>
+        Credential.from(username, password)
+      }.toJava
     }
   }
 

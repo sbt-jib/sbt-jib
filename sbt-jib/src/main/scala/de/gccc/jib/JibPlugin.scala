@@ -1,11 +1,15 @@
 package de.gccc.jib
 
-import java.nio.file.Files
 import com.google.cloud.tools.jib.api.ImageReference
 import com.google.cloud.tools.jib.api.buildplan.Platform
-import sbt._
-import sbt.Keys._
-import complete.DefaultParsers._
+import PluginCompat.*
+import sbt.*
+import sbt.Keys.*
+import sbt.complete.DefaultParsers.*
+import sbt.util.*
+import xsbti.FileConverter
+
+import java.nio.file.Files
 
 object JibPlugin extends AutoPlugin {
 
@@ -26,22 +30,28 @@ object JibPlugin extends AutoPlugin {
       case object OCI    extends JibImageFormat
     }
 
-    val jibBaseImage = settingKey[String]("jib base image")
+    val jibBaseImage                 = settingKey[String]("jib base image")
     val jibBaseImageCredentialHelper =
       settingKey[Option[String]]("jib base image credential helper cli name (e.g. ecr-login)")
-    val jibJvmFlags        = settingKey[List[String]]("jib default jvm flags")
-    val jibTcpPorts        = settingKey[List[Int]]("jib default Tcp ports")
-    val jibUdpPorts        = settingKey[List[Int]]("jib default Udp ports")
-    val jibArgs            = settingKey[List[String]]("jib default args")
-    val jibEntrypoint      = settingKey[Option[List[String]]]("jib entrypoint")
-    val jibImageFormat     = settingKey[JibImageFormat]("jib default image format")
-    val jibDockerBuild     = taskKey[ImageReference]("jib build docker image")
-    val jibImageBuild      = taskKey[ImageReference]("jib build image (does not need docker)")
-    val jibTarImageBuild   = inputKey[Unit]("jib build tar image")
-    val jibJavaDockerBuild = taskKey[ImageReference]("jib build docker image, uses JavaContainerBuilder from jib-core")
+    val jibJvmFlags    = settingKey[List[String]]("jib default jvm flags")
+    val jibTcpPorts    = settingKey[List[Int]]("jib default Tcp ports")
+    val jibUdpPorts    = settingKey[List[Int]]("jib default Udp ports")
+    val jibArgs        = settingKey[List[String]]("jib default args")
+    val jibEntrypoint  = settingKey[Option[List[String]]]("jib entrypoint")
+    val jibImageFormat = settingKey[JibImageFormat]("jib default image format")
+    @cacheLevel(include = Array.empty)
+    val jibDockerBuild = taskKey[Unit]("jib build docker image")
+    @cacheLevel(include = Array.empty)
+    val jibImageBuild = taskKey[Unit]("jib build image (does not need docker)")
+    @cacheLevel(include = Array.empty)
+    val jibTarImageBuild = inputKey[Unit]("jib build tar image")
+    @cacheLevel(include = Array.empty)
+    val jibJavaDockerBuild = taskKey[Unit]("jib build docker image, uses JavaContainerBuilder from jib-core")
+    @cacheLevel(include = Array.empty)
     val jibJavaImageBuild =
-      taskKey[ImageReference]("jib build image (does not need docker), uses JavaContainerBuilder from jib-core")
-    val jibJavaTarImageBuild = inputKey[Unit]("jib build tar image, uses JavaContainerBuilder from jib-core")
+      taskKey[Unit]("jib build image (does not need docker), uses JavaContainerBuilder from jib-core")
+    @cacheLevel(include = Array.empty)
+    val jibJavaTarImageBuild  = inputKey[Unit]("jib build tar image, uses JavaContainerBuilder from jib-core")
     val jibJavaAddToClasspath = settingKey[List[File]](
       "Adds other files to the class path when using jibJava*. Serves as replacement for `jibMappings` and `jibExtraMappings` which don't work there."
     )
@@ -57,30 +67,34 @@ object JibPlugin extends AutoPlugin {
     val jibTarget                      = settingKey[File]("""jib target folder (defaults to target.value / "jib")""")
     val jibAllowInsecureRegistries     = settingKey[Boolean]("""allow pushing to insecure registries""")
     val jibSendCredentialsOverHttp     = settingKey[Boolean]("""allow sending credentials over unencrypted HTTP""")
-    val jibUser =
-      settingKey[Option[String]]("jib user and group to run the container as")
-    val jibMappings = taskKey[Seq[(File, String)]](
+    val jibUser                        = settingKey[Option[String]]("jib user and group to run the container as")
+    @cacheLevel(include = Array.empty)
+    val jibMappings = taskKey[Seq[(FileRef, String)]](
       "jib additional resource mappings, formatted as <source file resource> -> <full path on container>"
     )
+    @cacheLevel(include = Array.empty)
     val jibExtraMappings =
-      taskKey[Seq[(File, String)]]("jib extra file mappings / i.e. java agents (see above for formatting)")
-    val jibExtraMappingPermissions =
-      taskKey[Seq[(Glob, String)]](
-        "jib extra files permissions / file paths (glob patterns) on container to Unix permissions."
-      )
+      taskKey[Seq[(FileRef, String)]]("jib extra file mappings / i.e. java agents (see above for formatting)")
+    @cacheLevel(include = Array.empty)
+    val jibExtraMappingPermissions = taskKey[Seq[(Glob, String)]](
+      "jib extra files permissions / file paths (glob patterns) on container to Unix permissions."
+    )
+
     val jibUseCurrentTimestamp =
       settingKey[Boolean]("jib use current timestamp for image creation time. Default to Epoch")
     val jibCustomRepositoryPath = settingKey[Option[String]]("jib custom repository path freeform path structure")
 
     private[jib] object Private {
+      @cacheLevel(include = Array.empty)
       val sbtLayerConfiguration = taskKey[SbtLayerConfigurations]("jib layer configuration")
-      val sbtConfiguration      = taskKey[SbtConfiguration]("jib sbt configuration")
+      @cacheLevel(include = Array.empty)
+      val sbtConfiguration = taskKey[SbtConfiguration]("jib sbt configuration")
     }
   }
 
-  import autoImport._
+  import autoImport.*
 
-  override def projectSettings: Seq[Def.Setting[_]] = Seq(
+  override def projectSettings: Seq[Def.Setting[?]] = Seq(
     // public values
     jibBaseImage                   := "ghcr.io/graalvm/jdk:latest",
     jibBaseImageCredentialHelper   := None,
@@ -113,8 +127,9 @@ object JibPlugin extends AutoPlugin {
     jibSendCredentialsOverHttp     := false,
     // private values
     Private.sbtLayerConfiguration := {
-      val stageDirectory     = target.value / "stage"
-      val stageDirectoryPath = stageDirectory.toPath
+      implicit val conv: FileConverter = fileConverter.value
+      val stageDirectory               = target.value / "stage"
+      val stageDirectoryPath           = stageDirectory.toPath
       if (Files.notExists(stageDirectoryPath)) {
         Files.createDirectories(stageDirectoryPath)
       }
@@ -158,126 +173,139 @@ object JibPlugin extends AutoPlugin {
       )
 
     },
-    jibDockerBuild := SbtDockerBuild.task(
-      target.value,
-      streams.value.log,
-      Private.sbtConfiguration.value,
-      jibBaseImageCredentialHelper.value,
-      jibJvmFlags.value,
-      jibTcpPorts.value,
-      jibUdpPorts.value,
-      jibArgs.value,
-      jibEntrypoint.value,
-      jibEnvironment.value,
-      jibLabels.value,
-      jibTags.value,
-      jibUser.value,
-      jibUseCurrentTimestamp.value,
-      jibPlatforms.value
-    ),
-    jibImageBuild := SbtImageBuild.task(
-      target.value,
-      streams.value.log,
-      Private.sbtConfiguration.value,
-      jibBaseImageCredentialHelper.value,
-      jibTargetImageCredentialHelper.value,
-      jibJvmFlags.value,
-      jibTcpPorts.value,
-      jibUdpPorts.value,
-      jibArgs.value,
-      jibEntrypoint.value,
-      jibImageFormat.value,
-      jibEnvironment.value,
-      jibLabels.value,
-      jibTags.value,
-      jibUser.value,
-      jibUseCurrentTimestamp.value,
-      jibPlatforms.value
-    ),
-    jibTarImageBuild := {
-      spaceDelimited("<path>").parsed.headOption match {
-        case Some(pathString) =>
-          SbtTarImageBuild.task(
-            target.value,
-            new File(pathString),
-            streams.value.log,
-            Private.sbtConfiguration.value,
-            jibBaseImageCredentialHelper.value,
-            jibJvmFlags.value,
-            jibTcpPorts.value,
-            jibUdpPorts.value,
-            jibArgs.value,
-            jibEntrypoint.value,
-            jibImageFormat.value,
-            jibEnvironment.value,
-            jibLabels.value,
-            jibTags.value,
-            jibUser.value,
-            jibUseCurrentTimestamp.value
-          )
-        case None =>
-          streams.value.log.error("could not create jib tar image, cause path is not set")
-      }
+    jibDockerBuild := {
+      SbtDockerBuild.task(
+        target.value,
+        streams.value.log,
+        Private.sbtConfiguration.value,
+        jibBaseImageCredentialHelper.value,
+        jibJvmFlags.value,
+        jibTcpPorts.value,
+        jibUdpPorts.value,
+        jibArgs.value,
+        jibEntrypoint.value,
+        jibEnvironment.value,
+        jibLabels.value,
+        jibTags.value,
+        jibUser.value,
+        jibUseCurrentTimestamp.value,
+        jibPlatforms.value
+      )
     },
-    jibJavaDockerBuild := SbtJavaDockerBuild.task(
-      target.value,
-      streams.value.log,
-      Private.sbtConfiguration.value,
-      jibBaseImageCredentialHelper.value,
-      jibJvmFlags.value,
-      jibTcpPorts.value,
-      jibUdpPorts.value,
-      jibArgs.value,
-      jibEnvironment.value,
-      jibLabels.value,
-      jibTags.value,
-      jibUser.value,
-      jibUseCurrentTimestamp.value,
-      jibPlatforms.value
-    ),
-    jibJavaImageBuild := SbtJavaImageBuild.task(
-      target.value,
-      streams.value.log,
-      Private.sbtConfiguration.value,
-      jibBaseImageCredentialHelper.value,
-      jibTargetImageCredentialHelper.value,
-      jibJvmFlags.value,
-      jibTcpPorts.value,
-      jibUdpPorts.value,
-      jibArgs.value,
-      jibImageFormat.value,
-      jibEnvironment.value,
-      jibLabels.value,
-      jibTags.value,
-      jibUser.value,
-      jibUseCurrentTimestamp.value,
-      jibPlatforms.value
-    ),
-    jibJavaTarImageBuild := {
-      spaceDelimited("<path>").parsed.headOption match {
-        case Some(pathString) =>
-          SbtJavaTarImageBuild.task(
-            target.value,
-            new File(pathString),
-            streams.value.log,
-            Private.sbtConfiguration.value,
-            jibBaseImageCredentialHelper.value,
-            jibJvmFlags.value,
-            jibTcpPorts.value,
-            jibUdpPorts.value,
-            jibArgs.value,
-            jibImageFormat.value,
-            jibEnvironment.value,
-            jibLabels.value,
-            jibTags.value,
-            jibUser.value,
-            jibUseCurrentTimestamp.value,
-            jibPlatforms.value
-          )
-        case None =>
-          streams.value.log.error("could not create jib java tar image, cause path is not set")
-      }
+    jibImageBuild := {
+      SbtImageBuild.task(
+        target.value,
+        streams.value.log,
+        Private.sbtConfiguration.value,
+        jibBaseImageCredentialHelper.value,
+        jibTargetImageCredentialHelper.value,
+        jibJvmFlags.value,
+        jibTcpPorts.value,
+        jibUdpPorts.value,
+        jibArgs.value,
+        jibEntrypoint.value,
+        jibImageFormat.value,
+        jibEnvironment.value,
+        jibLabels.value,
+        jibTags.value,
+        jibUser.value,
+        jibUseCurrentTimestamp.value,
+        jibPlatforms.value
+      )
     },
+    jibTarImageBuild :=
+      spaceDelimited("<path>").map {
+        _.headOption match {
+          case Some(pathString) =>
+            SbtTarImageBuild.task(
+              target.value,
+              new File(pathString),
+              streams.value.log,
+              Private.sbtConfiguration.value,
+              jibBaseImageCredentialHelper.value,
+              jibJvmFlags.value,
+              jibTcpPorts.value,
+              jibUdpPorts.value,
+              jibArgs.value,
+              jibEntrypoint.value,
+              jibImageFormat.value,
+              jibEnvironment.value,
+              jibLabels.value,
+              jibTags.value,
+              jibUser.value,
+              jibUseCurrentTimestamp.value
+            )
+          case None =>
+            streams.value.log.error("could not create jib tar image, cause path is not set")
+        }
+      },
+    jibJavaDockerBuild := {
+      implicit val conv: FileConverter = fileConverter.value
+      SbtJavaDockerBuild.task(
+        target.value,
+        streams.value.log,
+        Private.sbtConfiguration.value,
+        jibBaseImageCredentialHelper.value,
+        jibJvmFlags.value,
+        jibTcpPorts.value,
+        jibUdpPorts.value,
+        jibArgs.value,
+        jibEnvironment.value,
+        jibLabels.value,
+        jibTags.value,
+        jibUser.value,
+        jibUseCurrentTimestamp.value,
+        jibPlatforms.value
+      )
+    },
+    jibJavaImageBuild := {
+      implicit val conv: FileConverter = fileConverter.value
+      SbtJavaImageBuild.task(
+        target.value,
+        streams.value.log,
+        Private.sbtConfiguration.value,
+        jibBaseImageCredentialHelper.value,
+        jibTargetImageCredentialHelper.value,
+        jibJvmFlags.value,
+        jibTcpPorts.value,
+        jibUdpPorts.value,
+        jibArgs.value,
+        jibImageFormat.value,
+        jibEnvironment.value,
+        jibLabels.value,
+        jibTags.value,
+        jibUser.value,
+        jibUseCurrentTimestamp.value,
+        jibPlatforms.value
+      )
+    },
+    jibJavaTarImageBuild :=
+      spaceDelimited("<path>").map { parsed =>
+        implicit val conv: FileConverter = fileConverter.value
+        parsed.headOption match {
+          case Some(pathString) =>
+            SbtJavaTarImageBuild.task(
+              target.value,
+              new File(pathString),
+              streams.value.log,
+              Private.sbtConfiguration.value,
+              jibBaseImageCredentialHelper.value,
+              jibJvmFlags.value,
+              jibTcpPorts.value,
+              jibUdpPorts.value,
+              jibArgs.value,
+              jibImageFormat.value,
+              jibEnvironment.value,
+              jibLabels.value,
+              jibTags.value,
+              jibUser.value,
+              jibUseCurrentTimestamp.value,
+              jibPlatforms.value
+            )
+          case None =>
+            streams.value.log.error("could not create jib java tar image, cause path is not set")
+        }
+      },
     jibDockerBuild     := jibDockerBuild.dependsOn(Compile / compile).value,
     jibImageBuild      := jibImageBuild.dependsOn(Compile / compile).value,
     jibJavaDockerBuild := jibJavaDockerBuild.dependsOn(Compile / compile).value,

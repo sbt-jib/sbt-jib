@@ -1,13 +1,13 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, ImageReference, Jib, TarImage }
 import com.google.cloud.tools.jib.api.buildplan.{ ImageFormat, Port }
+import com.google.cloud.tools.jib.api.*
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
+import de.gccc.jib.PluginCompat.CollectionConverters.*
 import de.gccc.jib.common.JibCommon
 import sbt.internal.util.ManagedLogger
 
 import java.io.File
-import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 private[jib] object SbtTarImageBuild {

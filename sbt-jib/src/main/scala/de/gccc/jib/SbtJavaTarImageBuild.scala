@@ -1,9 +1,10 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.api.buildplan._
-import com.google.cloud.tools.jib.api._
+import com.google.cloud.tools.jib.api.buildplan.*
+import com.google.cloud.tools.jib.api.{ Containerizer, TarImage }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
+import xsbti.FileConverter
 
 import java.io.File
 import scala.util.control.NonFatal
@@ -26,7 +27,7 @@ private[jib] object SbtJavaTarImageBuild {
       user: Option[String],
       useCurrentTimestamp: Boolean,
       platforms: Set[Platform]
-  ): Unit =
+  )(implicit converter: FileConverter): Unit =
     try {
       val targetImage   = TarImage.at(home.toPath).named(configuration.targetImageReference)
       val containerizer = Containerizer.to(targetImage)

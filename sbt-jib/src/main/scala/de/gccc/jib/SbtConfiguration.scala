@@ -3,13 +3,13 @@ package de.gccc.jib
 import com.google.cloud.tools.jib.api.buildplan.{ AbsoluteUnixPath, FileEntriesLayer }
 import com.google.cloud.tools.jib.api.{ ImageReference, LogEvent }
 import com.google.common.collect.ImmutableList
+import de.gccc.jib.PluginCompat.CollectionConverters.*
+import de.gccc.jib.PluginCompat.Credentials
 import de.gccc.jib.common.JibCommon
-import sbt.librarymanagement.ivy.Credentials
 import sbt.util.{ Level, Logger }
 
 import java.io.File
 import java.nio.file.{ Files, Path }
-import scala.collection.JavaConverters._
 
 private[jib] class SbtConfiguration(
     logger: Logger,
@@ -59,7 +59,7 @@ private[jib] class SbtConfiguration(
     ImageReference.of(registry, repository, version)
 
   val credsForHost: String => Option[(String, String)] =
-    Credentials.forHost(credentials, _).map(c => (c.userName, c.passwd))
+    PluginCompat.credsForHost(credentials)
 
   def logEvent(logEvent: LogEvent): Unit = {
     val level = logEvent.getLevel match {
@@ -89,7 +89,7 @@ private[jib] class SbtConfiguration(
   def entrypoint(jvmFlags: List[String], entrypoint: Option[List[String]]): java.util.List[String] = {
     entrypoint match {
       case Some(list) => list.asJava
-      case None =>
+      case None       =>
         val appRoot = AbsoluteUnixPath.get("/app")
         JavaEntrypointConstructor.makeDefaultEntrypoint(appRoot, jvmFlags.asJava, pickedMainClass)
     }

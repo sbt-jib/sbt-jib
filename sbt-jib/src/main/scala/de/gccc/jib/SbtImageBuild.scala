@@ -1,13 +1,13 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, ImageReference, Jib }
 import com.google.cloud.tools.jib.api.buildplan.{ ImageFormat, Platform, Port }
+import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, Jib }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
+import de.gccc.jib.PluginCompat.CollectionConverters.*
 import de.gccc.jib.common.JibCommon
 import sbt.internal.util.ManagedLogger
 
 import java.io.File
-import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 private[jib] object SbtImageBuild {
@@ -30,7 +30,7 @@ private[jib] object SbtImageBuild {
       user: Option[String],
       useCurrentTimestamp: Boolean,
       platforms: Set[Platform]
-  ): ImageReference = {
+  ): Unit = {
 
     val internalImageFormat = imageFormat match {
       case JibImageFormat.Docker => ImageFormat.Docker
@@ -77,7 +77,6 @@ private[jib] object SbtImageBuild {
       JibCommon.writeJibOutputFiles(container)(targetDirectory.toPath)
 
       logger.success("image successfully created & uploaded")
-      configuration.targetImageReference
     } catch {
       case NonFatal(t) =>
         logger.error(s"could not create image (Exception: $t)")

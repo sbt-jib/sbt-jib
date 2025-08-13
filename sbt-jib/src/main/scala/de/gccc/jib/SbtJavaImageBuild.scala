@@ -1,10 +1,11 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.api._
-import com.google.cloud.tools.jib.api.buildplan._
+import com.google.cloud.tools.jib.api.Containerizer
+import com.google.cloud.tools.jib.api.buildplan.*
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import de.gccc.jib.common.JibCommon
 import sbt.internal.util.ManagedLogger
+import xsbti.FileConverter
 
 import java.io.File
 import scala.util.control.NonFatal
@@ -28,7 +29,7 @@ private[jib] object SbtJavaImageBuild {
       user: Option[String],
       useCurrentTimestamp: Boolean,
       platforms: Set[Platform]
-  ): ImageReference =
+  )(implicit converter: FileConverter): Unit =
     try {
       val targetImage = JibCommon.targetImageFactory(configuration.targetImageReference)(
         jibTargetImageCredentialHelper,
@@ -53,7 +54,6 @@ private[jib] object SbtJavaImageBuild {
         platforms
       )(containerizer)
       logger.success("java image successfully created & uploaded")
-      configuration.targetImageReference
     } catch {
       case NonFatal(t) =>
         logger.error(s"could not create java image (Exception: $t)")

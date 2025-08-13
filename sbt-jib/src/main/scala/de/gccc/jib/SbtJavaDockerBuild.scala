@@ -1,10 +1,11 @@
 package de.gccc.jib
 
-import com.google.cloud.tools.jib.api.buildplan._
-import com.google.cloud.tools.jib.api._
+import com.google.cloud.tools.jib.api.buildplan.*
+import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage }
 import com.google.cloud.tools.jib.docker.CliDockerClient
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import sbt.internal.util.ManagedLogger
+import xsbti.FileConverter
 
 import java.io.File
 import scala.util.control.NonFatal
@@ -26,7 +27,7 @@ private[jib] object SbtJavaDockerBuild {
       user: Option[String],
       useCurrentTimestamp: Boolean,
       platforms: Set[Platform]
-  ): ImageReference = {
+  )(implicit converter: FileConverter): Unit = {
     if (!CliDockerClient.isDefaultDockerInstalled) {
       throw new Exception("Build to Docker daemon failed")
     }
@@ -50,7 +51,6 @@ private[jib] object SbtJavaDockerBuild {
         platforms
       )(containerizer)
       logger.success("java image successfully created & uploaded")
-      configuration.targetImageReference
     } catch {
       case NonFatal(t) =>
         logger.error(s"could not create java docker image (Exception: $t)")

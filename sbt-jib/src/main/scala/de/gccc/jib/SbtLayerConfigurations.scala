@@ -1,29 +1,32 @@
 package de.gccc.jib
 
-import java.io.File
 import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer
-import sbt._
+import de.gccc.jib.PluginCompat.Classpath
+import sbt.*
+import xsbti.FileConverter
+
+import java.io.File
 
 private[jib] case class SbtLayerConfigurations(
     targetDirectory: File,
     classes: Seq[File],
     resourceDirectories: Seq[File],
     resources: Seq[File],
-    internalDependencies: Keys.Classpath,
-    external: Keys.Classpath,
-    extraMappings: Seq[(File, String)],
+    internalDependencies: Classpath,
+    external: Classpath,
+    extraMappings: Seq[(PluginCompat.FileRef, String)],
     extraMappingPermissions: Seq[(Glob, String)],
     specialResourceDirectory: File,
-    mappings: Seq[(File, String)],
+    mappings: Seq[(PluginCompat.FileRef, String)],
     addToClasspath: List[File]
-) {
+)(implicit converter: FileConverter) {
   lazy val generate: List[FileEntriesLayer] = {
 
     val internalDependenciesLayer = {
       SbtJibHelper.mappingsConverter("internal", reproducibleDependencies(targetDirectory, internalDependencies))
     }
     val externalDependenciesLayer = {
-      SbtJibHelper.mappingsConverter("libs", MappingsHelper.fromClasspath(external.seq, "/app/libs"))
+      SbtJibHelper.mappingsConverter("libs", MappingsHelper.fromClasspath(external, "/app/libs"))
     }
 
     val resourcesLayer = {
@@ -44,7 +47,11 @@ private[jib] case class SbtLayerConfigurations(
 
     val extraLayer =
       if (extraMappings.nonEmpty)
-        SbtJibHelper.mappingsConverter("extra", extraMappings.filter(_._1.isFile), extraMappingPermissions) :: Nil
+        SbtJibHelper.mappingsConverter(
+          "extra",
+          extraMappings.filter(f => PluginCompat.isFile(f._1)),
+          extraMappingPermissions
+        ) :: Nil
       else Nil
 
     val allClasses = classes
@@ -64,8 +71,7 @@ private[jib] case class SbtLayerConfigurations(
     )).filterNot(lc => lc.getEntries.isEmpty)
   }
 
-  private def reproducibleDependencies(targetDirectory: File, internalDependencies: Keys.Classpath) = {
-    val dependencies = internalDependencies.seq.map(_.data)
+  private def reproducibleDependencies(targetDirectory: File, internalDependencies: Classpath) = {
 
     val stageDirectory = targetDirectory / "jib" / "dependency-stage"
     IO.delete(stageDirectory)
@@ -73,10 +79,11 @@ private[jib] case class SbtLayerConfigurations(
 
     val stripper = new ZipStripper()
 
-    dependencies.foreach { in =>
-      val fileName = in.getName
+    internalDependencies.foreach { in =>
+      val file     = PluginCompat.toFile(in)
+      val fileName = file.getName
       val out      = new File(stageDirectory, fileName)
-      stripper.strip(in, out)
+      stripper.strip(file, out)
     }
 
     MappingsHelper.contentOf(stageDirectory, "/app/libs")
