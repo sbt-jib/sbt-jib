@@ -3,7 +3,8 @@ package de.gccc.jib
 import java.io.File
 
 import sbt._
-import sbt.io.{ IO, PathFinder }
+import sbt.io.{ IO, Mapper, PathFinder }
+import sbtcompat.PluginCompat._
 
 import scala.language.postfixOps
 
@@ -103,10 +104,11 @@ object MappingsHelper extends Mapper {
       includeArtifact: Artifact => Boolean,
       includeOnNoArtifact: Boolean = false
   ): Seq[(File, String)] =
-    entries.filter(attr => attr.get(sbt.Keys.artifact.key) map includeArtifact getOrElse includeOnNoArtifact).map {
-      attribute =>
-        val file = attribute.data
-        file -> s"$target/${file.getName}"
+    entries.filter { attr =>
+      attr.get(artifactStr).map(parseArtifactStrAttribute).map(includeArtifact).getOrElse(includeOnNoArtifact)
+    }.map { attribute =>
+      val file = attribute.data
+      file -> s"$target/${file.getName}"
     }
 
 }

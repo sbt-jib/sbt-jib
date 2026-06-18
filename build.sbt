@@ -27,7 +27,17 @@ lazy val jibCommon = (project in file("jib-common")).settings(
 
 lazy val sbtJib = (project in file("sbt-jib"))
   .settings(
-    name := "sbt-jib"
+    name               := "sbt-jib",
+    crossScalaVersions := List("2.12.20", "3.8.3"),
+    pluginCrossBuild / sbtVersion := {
+      scalaBinaryVersion.value match {
+        case "2.12" => "1.11.4"
+        case _      => "2.0.0"
+      }
+    },
+    addSbtPlugin("com.github.sbt" % "sbt2-compat" % "0.1.0"),
+    scriptedLaunchOpts ++= Seq("-Xmx1024M", s"-Dplugin.version=${version.value}"),
+    scriptedBufferLog := false
   )
   .dependsOn(jibCommon)
   .enablePlugins(SbtPlugin)

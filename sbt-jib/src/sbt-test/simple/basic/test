@@ -1,0 +1,7 @@
+# Build an image tarball: no docker daemon, no registry push.
+# Exercises the sbt 2.x -> File classpath conversion (internal `hase` dep +
+# external commons-io) through SbtLayerConfigurations.
+> jibTarImageBuild target/test.tar
+
+# The tarball must exist.
+$ exists target/test.tar

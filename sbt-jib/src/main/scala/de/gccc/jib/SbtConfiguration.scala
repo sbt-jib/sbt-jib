@@ -4,8 +4,9 @@ import com.google.cloud.tools.jib.api.buildplan.{ AbsoluteUnixPath, FileEntriesL
 import com.google.cloud.tools.jib.api.{ ImageReference, LogEvent }
 import com.google.common.collect.ImmutableList
 import de.gccc.jib.common.JibCommon
-import sbt.librarymanagement.ivy.Credentials
+import sbt.Credentials
 import sbt.util.{ Level, Logger }
+import sbtcompat.PluginCompat._
 
 import java.io.File
 import java.nio.file.{ Files, Path }
@@ -59,7 +60,7 @@ private[jib] class SbtConfiguration(
     ImageReference.of(registry, repository, version)
 
   val credsForHost: String => Option[(String, String)] =
-    Credentials.forHost(credentials, _).map(c => (c.userName, c.passwd))
+    credentialForHost(credentials, _).map(c => (c.userName, c.passwd))
 
   def logEvent(logEvent: LogEvent): Unit = {
     val level = logEvent.getLevel match {
