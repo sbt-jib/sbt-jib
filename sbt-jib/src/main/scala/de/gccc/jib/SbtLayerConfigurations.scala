@@ -9,8 +9,8 @@ private[jib] case class SbtLayerConfigurations(
     classes: Seq[File],
     resourceDirectories: Seq[File],
     resources: Seq[File],
-    internalDependencies: Keys.Classpath,
-    external: Keys.Classpath,
+    internalDependencies: Seq[Attributed[File]],
+    external: Seq[Attributed[File]],
     extraMappings: Seq[(File, String)],
     extraMappingPermissions: Seq[(Glob, String)],
     specialResourceDirectory: File,
@@ -23,7 +23,7 @@ private[jib] case class SbtLayerConfigurations(
       SbtJibHelper.mappingsConverter("internal", reproducibleDependencies(targetDirectory, internalDependencies))
     }
     val externalDependenciesLayer = {
-      SbtJibHelper.mappingsConverter("libs", MappingsHelper.fromClasspath(external.seq, "/app/libs"))
+      SbtJibHelper.mappingsConverter("libs", MappingsHelper.fromClasspath(external, "/app/libs"))
     }
 
     val resourcesLayer = {
@@ -64,8 +64,8 @@ private[jib] case class SbtLayerConfigurations(
     )).filterNot(lc => lc.getEntries.isEmpty)
   }
 
-  private def reproducibleDependencies(targetDirectory: File, internalDependencies: Keys.Classpath) = {
-    val dependencies = internalDependencies.seq.map(_.data)
+  private def reproducibleDependencies(targetDirectory: File, internalDependencies: Seq[Attributed[File]]) = {
+    val dependencies = internalDependencies.map(_.data)
 
     val stageDirectory = targetDirectory / "jib" / "dependency-stage"
     IO.delete(stageDirectory)

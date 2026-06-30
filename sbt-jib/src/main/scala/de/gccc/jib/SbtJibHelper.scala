@@ -4,12 +4,25 @@ import com.google.cloud.tools.jib.api.buildplan._
 import com.google.cloud.tools.jib.api.{ Containerizer, DockerDaemonImage, JavaContainerBuilder }
 import de.gccc.jib.JibPlugin.autoImport.JibImageFormat
 import de.gccc.jib.common.JibCommon
+import sbt.Attributed
 import sbt.io.Path
 import sbt.nio.file.Glob
+import sbtcompat.PluginCompat.{ toFile, FileRef }
+import xsbti.FileConverter
 
 import java.io.File
 
 private[jib] object SbtJibHelper {
+
+  def toFileMappings(
+      mappings: Seq[(FileRef, String)]
+  )(implicit conv: FileConverter): Seq[(File, String)] =
+    mappings.map { case (ref, path) => toFile(ref) -> path }
+
+  def convertClasspath(
+      classpath: Seq[Attributed[FileRef]]
+  )(implicit conv: FileConverter): Seq[Attributed[File]] =
+    classpath.map(_.map(ref => toFile(ref)))
 
   def mappingsConverter(
       name: String,
