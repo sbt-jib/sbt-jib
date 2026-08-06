@@ -8,7 +8,7 @@ This project tries to make a sbt plugin for the awesome [jib](https://github.com
 Add the following lines in `project/plugins.sbt`:
 
 ```scala
-addSbtPlugin("de.gccc.sbt" % "sbt-jib" % "<sbt-jib-version>")
+addSbtPlugin("io.github.sbt-jib" % "sbt-jib" % "<sbt-jib-version>")
 libraryDependencies += "com.google.cloud.tools" % "jib-core" % "<jib-core-version>"
 ```
 
@@ -16,8 +16,7 @@ You can find the latest `jib-core` version [in their release list](https://githu
 
 | `sbt-jib` | `jib-core` |
 | :---: | :---: |
-| ![sbt-jib badge](https://maven-badges.herokuapp.com/maven-central/de.gccc.sbt/sbt-jib/badge.svg) | ![jib-core badge](https://maven-badges.herokuapp.com/maven-central/com.google.cloud.tools/jib-core/badge.svg) |
-
+| [![sbt-jib badge](https://maven-badges.sml.io/sonatype-central/io.github.sbt-jib/sbt-jib_2.12_1.0/badge.svg)](https://oss.sonatype.org/content/repositories/releases/io/github/sbt-jib/sbt-jib_2.12_1.0/) | [![jib-core badge](https://maven-badges.sml.io/sonatype-central/com.google.cloud.tools/jib-core/badge.svg)](https://oss.sonatype.org/content/repositories/releases/com/google/cloud/tools/jib-core/) |
 
 ## settings
     
