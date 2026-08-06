@@ -1,8 +1,8 @@
 inThisBuild(
   Seq(
     scalaVersion := "2.12.20",
-    organization := "de.gccc.sbt",
-    homepage     := Some(url("https://github.com/schmitch")),
+    organization := "io.github.sbt-jib",
+    homepage     := Some(url("https://github.com/sbt-jib")),
     licenses     := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
     developers := List(
       Developer(
