@@ -23,7 +23,10 @@ private[jib] case class SbtLayerConfigurations(
       SbtJibHelper.mappingsConverter("internal", reproducibleDependencies(targetDirectory, internalDependencies))
     }
     val externalDependenciesLayer = {
-      SbtJibHelper.mappingsConverter("libs", MappingsHelper.fromClasspath(external, "/app/libs"))
+      val libMappings = MappingsHelper.fromClasspath(external, "/app/libs").map { case (file, _) =>
+        file -> s"/app/libs/${libFileName(file)}"
+      }
+      SbtJibHelper.mappingsConverter("libs", libMappings)
     }
 
     val resourcesLayer = {
@@ -64,6 +67,26 @@ private[jib] case class SbtLayerConfigurations(
     )).filterNot(lc => lc.getEntries.isEmpty)
   }
 
+  /**
+   * All dependency jars end up flat in /app/libs, so jars that share a file name (e.g. the same artifact name and
+   * version published by two different organisations) would map to the same path and silently overwrite each other,
+   * leaving classes missing at runtime.
+   */
+  private lazy val duplicateJarNames: Set[String] =
+    (internalDependencies ++ external)
+      .map(_.data.getName)
+      .groupBy(identity)
+      .collect { case (fileName, occurrences) if occurrences.size > 1 => fileName }
+      .toSet
+
+  /**
+   * Renaming logic for colliding file names, kept in sync with jib-core's JavaContainerBuilder, which appends the file
+   * size for the same reason. See https://github.com/GoogleContainerTools/jib/issues/3331
+   */
+  private def libFileName(file: File): String =
+    if (duplicateJarNames.contains(file.getName)) file.getName.replaceFirst("\\.jar$", "-" + file.length) + ".jar"
+    else file.getName
+
   private def reproducibleDependencies(targetDirectory: File, internalDependencies: Seq[Attributed[File]]) = {
     val dependencies = internalDependencies.map(_.data)
 
@@ -74,7 +97,7 @@ private[jib] case class SbtLayerConfigurations(
     val stripper = new ZipStripper()
 
     dependencies.foreach { in =>
-      val fileName = in.getName
+      val fileName = libFileName(in)
       val out      = new File(stageDirectory, fileName)
       stripper.strip(in, out)
     }

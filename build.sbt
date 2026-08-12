@@ -36,6 +36,7 @@ lazy val sbtJib = (project in file("sbt-jib"))
       }
     },
     addSbtPlugin("com.github.sbt" % "sbt2-compat" % "0.1.0"),
+    libraryDependencies += "org.scalameta" %% "munit" % "1.3.5" % Test,
     scriptedLaunchOpts ++= Seq("-Xmx1024M", s"-Dplugin.version=${version.value}"),
     scriptedBufferLog := false
   )
