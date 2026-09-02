@@ -49,11 +49,15 @@ You can find the latest `jib-core` version [in their release list](https://githu
 
 ## commands
 
+> [!WARNING]
+> The `jibDockerBuild`, `jibImageBuild` and `jibTarImageBuild` commands are **deprecated** and will be removed in a future release.
+> Please use their `jibJava*` counterparts instead. The `jibJava*` commands rely on the `JavaContainerBuilder` from `jib-core`, which handles Java-specific concerns for us (for example, it correctly deduplicates dependency jars that share the same `artifactName + version`).
+
 | name               | description |
 | ---                | --- |
-| **jibDockerBuild**     | jib build docker image |
-| **jibImageBuild**      | jib build image (does not need docker) |
-| **jibTarImageBuild**   | jib build tar image |
+| **jibDockerBuild**     | _(deprecated, use `jibJavaDockerBuild`)_ jib build docker image |
+| **jibImageBuild**      | _(deprecated, use `jibJavaImageBuild`)_ jib build image (does not need docker) |
+| **jibTarImageBuild**   | _(deprecated, use `jibJavaTarImageBuild`)_ jib build tar image |
 | **jibJavaDockerBuild**   | jib build docker image, uses JavaContainerBuilder from jib-core |
 | **jibJavaImageBuild**    | jib build image (does not need docker), uses JavaContainerBuilder from jib-core |
 | **jibJavaTarImageBuild** | jib build tar image, uses JavaContainerBuilder from jib-core |
